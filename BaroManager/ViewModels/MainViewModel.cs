@@ -81,6 +81,9 @@ public partial class MainViewModel : ObservableObject
     private ManagedCollection? selectedCollection;
 
     [ObservableProperty]
+    private ManagedCollection? selectedTargetCollection;
+
+    [ObservableProperty]
     private int? editingItemId;
 
     public MainViewModel(AppDbContext db)
@@ -110,6 +113,9 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void LoadCollections()
     {
+        var selectedCollectionId = SelectedCollection?.Id;
+        var selectedTargetCollectionId = SelectedTargetCollection?.Id;
+
         Collections.Clear();
 
         var collections = _db.ManagedCollections
@@ -120,6 +126,12 @@ public partial class MainViewModel : ObservableObject
 
         foreach (var collection in collections)
             Collections.Add(collection);
+
+        if (selectedCollectionId is not null)
+            SelectedCollection = Collections.FirstOrDefault(x => x.Id == selectedCollectionId.Value);
+
+        if (selectedTargetCollectionId is not null)
+            SelectedTargetCollection = Collections.FirstOrDefault(x => x.Id == selectedTargetCollectionId.Value);
     }
 
     [RelayCommand]
@@ -152,7 +164,10 @@ public partial class MainViewModel : ObservableObject
 
         LoadCollections();
 
-        SelectedCollection = Collections.FirstOrDefault(x => x.Id == collection.Id);
+        var createdCollection = Collections.FirstOrDefault(x => x.Id == collection.Id);
+
+        SelectedCollection = createdCollection;
+        SelectedTargetCollection = createdCollection;
     }
 
     [RelayCommand]
@@ -244,21 +259,10 @@ public partial class MainViewModel : ObservableObject
         {
             if (SelectedCollection is not null)
             {
-                var alreadyLinked = _db.ItemCollections.Any(x =>
-                    x.ManagedItemId == existingItem.Id &&
-                    x.CollectionId == SelectedCollection.Id
-                );
+                var linked = LinkItemToCollection(existingItem.Id, SelectedCollection.Id);
 
-                if (!alreadyLinked)
+                if (linked)
                 {
-                    _db.ItemCollections.Add(new ManagedItemCollection
-                    {
-                        ManagedItemId = existingItem.Id,
-                        CollectionId = SelectedCollection.Id
-                    });
-
-                    _db.SaveChanges();
-
                     WpfMessageBox.Show(
                         "Этот путь уже был сохранён, поэтому я просто добавил его в выбранный список.",
                         "BaroManager"
@@ -298,13 +302,7 @@ public partial class MainViewModel : ObservableObject
 
         if (SelectedCollection is not null)
         {
-            _db.ItemCollections.Add(new ManagedItemCollection
-            {
-                ManagedItemId = item.Id,
-                CollectionId = SelectedCollection.Id
-            });
-
-            _db.SaveChanges();
+            LinkItemToCollection(item.Id, SelectedCollection.Id);
         }
 
         ClearForm();
@@ -417,6 +415,80 @@ public partial class MainViewModel : ObservableObject
     private void CancelEdit()
     {
         ClearForm();
+    }
+
+    [RelayCommand]
+    private void AddToTargetList(ManagedItem? item)
+    {
+        if (item is null)
+            return;
+
+        if (SelectedTargetCollection is null)
+        {
+            WpfMessageBox.Show("Сначала выбери целевой список сверху.", "BaroManager");
+            return;
+        }
+
+        var linked = LinkItemToCollection(item.Id, SelectedTargetCollection.Id);
+
+        if (!linked)
+        {
+            WpfMessageBox.Show(
+                $"Элемент уже есть в списке \"{SelectedTargetCollection.Name}\".",
+                "BaroManager"
+            );
+            return;
+        }
+
+        WpfMessageBox.Show(
+            $"Добавлено в список \"{SelectedTargetCollection.Name}\".",
+            "BaroManager"
+        );
+
+        LoadItems();
+    }
+
+    [RelayCommand]
+    private void MoveToTargetList(ManagedItem? item)
+    {
+        if (item is null)
+            return;
+
+        if (SelectedCollection is null)
+        {
+            WpfMessageBox.Show(
+                "Для переноса сначала выбери исходный список слева. Из режима 'Все элементы' переносить опасно и непонятно откуда.",
+                "BaroManager"
+            );
+            return;
+        }
+
+        if (SelectedTargetCollection is null)
+        {
+            WpfMessageBox.Show("Сначала выбери целевой список сверху.", "BaroManager");
+            return;
+        }
+
+        if (SelectedCollection.Id == SelectedTargetCollection.Id)
+        {
+            WpfMessageBox.Show("Исходный и целевой список одинаковые. Оно уже там, капитан.", "BaroManager");
+            return;
+        }
+
+        LinkItemToCollection(item.Id, SelectedTargetCollection.Id);
+
+        var oldLink = _db.ItemCollections.FirstOrDefault(x =>
+            x.ManagedItemId == item.Id &&
+            x.CollectionId == SelectedCollection.Id
+        );
+
+        if (oldLink is not null)
+        {
+            _db.ItemCollections.Remove(oldLink);
+            _db.SaveChanges();
+        }
+
+        LoadItems();
     }
 
     [RelayCommand]
@@ -590,6 +662,27 @@ public partial class MainViewModel : ObservableObject
             ClearForm();
 
         LoadItems();
+    }
+
+    private bool LinkItemToCollection(int itemId, int collectionId)
+    {
+        var alreadyLinked = _db.ItemCollections.Any(x =>
+            x.ManagedItemId == itemId &&
+            x.CollectionId == collectionId
+        );
+
+        if (alreadyLinked)
+            return false;
+
+        _db.ItemCollections.Add(new ManagedItemCollection
+        {
+            ManagedItemId = itemId,
+            CollectionId = collectionId
+        });
+
+        _db.SaveChanges();
+
+        return true;
     }
 
     private void TouchItem(int id)
