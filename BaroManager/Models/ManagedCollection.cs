@@ -1,4 +1,6 @@
-﻿namespace BaroManager.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BaroManager.Models;
 
 public class ManagedCollection
 {
@@ -11,4 +13,10 @@ public class ManagedCollection
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public ICollection<ManagedItemCollection> Items { get; set; } = new List<ManagedItemCollection>();
+
+    [NotMapped]
+    public int ItemCount { get; set; }
+
+    [NotMapped]
+    public string DisplayName => $"{Name} ({ItemCount})";
 }

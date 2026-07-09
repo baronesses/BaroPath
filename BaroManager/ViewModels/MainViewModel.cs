@@ -78,6 +78,9 @@ public partial class MainViewModel : ObservableObject
     private string newCollectionName = string.Empty;
 
     [ObservableProperty]
+    private string selectedCollectionName = string.Empty;
+
+    [ObservableProperty]
     private ManagedCollection? selectedCollection;
 
     [ObservableProperty]
@@ -101,6 +104,7 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnSelectedCollectionChanged(ManagedCollection? value)
     {
+        SelectedCollectionName = value?.Name ?? string.Empty;
         LoadItems();
     }
 
@@ -118,6 +122,16 @@ public partial class MainViewModel : ObservableObject
 
         Collections.Clear();
 
+        var itemCounts = _db.ItemCollections
+            .AsNoTracking()
+            .GroupBy(x => x.CollectionId)
+            .Select(x => new
+            {
+                CollectionId = x.Key,
+                Count = x.Count()
+            })
+            .ToDictionary(x => x.CollectionId, x => x.Count);
+
         var collections = _db.ManagedCollections
             .AsNoTracking()
             .OrderBy(x => x.SortOrder)
@@ -125,13 +139,24 @@ public partial class MainViewModel : ObservableObject
             .ToList();
 
         foreach (var collection in collections)
+        {
+            collection.ItemCount = itemCounts.TryGetValue(collection.Id, out var count)
+                ? count
+                : 0;
+
             Collections.Add(collection);
+        }
 
         if (selectedCollectionId is not null)
             SelectedCollection = Collections.FirstOrDefault(x => x.Id == selectedCollectionId.Value);
 
         if (selectedTargetCollectionId is not null)
             SelectedTargetCollection = Collections.FirstOrDefault(x => x.Id == selectedTargetCollectionId.Value);
+
+        if (SelectedCollection is null)
+            SelectedCollectionName = string.Empty;
+        else
+            SelectedCollectionName = SelectedCollection.Name;
     }
 
     [RelayCommand]
@@ -168,6 +193,97 @@ public partial class MainViewModel : ObservableObject
 
         SelectedCollection = createdCollection;
         SelectedTargetCollection = createdCollection;
+    }
+
+    [RelayCommand]
+    private void RenameSelectedCollection()
+    {
+        if (SelectedCollection is null)
+        {
+            WpfMessageBox.Show("Сначала выбери список слева.", "BaroManager");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SelectedCollectionName))
+        {
+            WpfMessageBox.Show("Название списка пустое.", "BaroManager");
+            return;
+        }
+
+        var newName = SelectedCollectionName.Trim();
+
+        var duplicate = _db.ManagedCollections.Any(x =>
+            x.Id != SelectedCollection.Id &&
+            x.Name == newName
+        );
+
+        if (duplicate)
+        {
+            WpfMessageBox.Show("Список с таким названием уже есть.", "BaroManager");
+            return;
+        }
+
+        var entity = _db.ManagedCollections.FirstOrDefault(x => x.Id == SelectedCollection.Id);
+
+        if (entity is null)
+        {
+            WpfMessageBox.Show("Список не найден в базе.", "BaroManager");
+            LoadCollections();
+            return;
+        }
+
+        entity.Name = newName;
+        _db.SaveChanges();
+
+        var selectedId = entity.Id;
+
+        LoadCollections();
+
+        SelectedCollection = Collections.FirstOrDefault(x => x.Id == selectedId);
+    }
+
+    [RelayCommand]
+    private void DeleteSelectedCollection()
+    {
+        if (SelectedCollection is null)
+        {
+            WpfMessageBox.Show("Сначала выбери список слева.", "BaroManager");
+            return;
+        }
+
+        var result = WpfMessageBox.Show(
+            $"Удалить список?\n\n{SelectedCollection.Name}\n\nЭлементы из менеджера НЕ удалятся. Удалится только сам список и его привязки.",
+            "Удаление списка",
+            WpfMessageBoxButton.YesNo,
+            WpfMessageBoxImage.Question
+        );
+
+        if (result != WpfMessageBoxResult.Yes)
+            return;
+
+        var collectionId = SelectedCollection.Id;
+
+        var entity = _db.ManagedCollections.FirstOrDefault(x => x.Id == collectionId);
+
+        if (entity is null)
+        {
+            WpfMessageBox.Show("Список уже не найден в базе.", "BaroManager");
+            LoadCollections();
+            LoadItems();
+            return;
+        }
+
+        _db.ManagedCollections.Remove(entity);
+        _db.SaveChanges();
+
+        if (SelectedTargetCollection?.Id == collectionId)
+            SelectedTargetCollection = null;
+
+        SelectedCollection = null;
+        SelectedCollectionName = string.Empty;
+
+        LoadCollections();
+        LoadItems();
     }
 
     [RelayCommand]
@@ -269,6 +385,7 @@ public partial class MainViewModel : ObservableObject
                     );
 
                     ClearForm();
+                    LoadCollections();
                     LoadItems();
                     return;
                 }
@@ -306,6 +423,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         ClearForm();
+        LoadCollections();
         LoadItems();
     }
 
@@ -445,6 +563,7 @@ public partial class MainViewModel : ObservableObject
             "BaroManager"
         );
 
+        LoadCollections();
         LoadItems();
     }
 
@@ -488,6 +607,7 @@ public partial class MainViewModel : ObservableObject
             _db.SaveChanges();
         }
 
+        LoadCollections();
         LoadItems();
     }
 
@@ -521,6 +641,7 @@ public partial class MainViewModel : ObservableObject
         _db.ItemCollections.Remove(link);
         _db.SaveChanges();
 
+        LoadCollections();
         LoadItems();
     }
 
@@ -661,6 +782,7 @@ public partial class MainViewModel : ObservableObject
         if (EditingItemId == item.Id)
             ClearForm();
 
+        LoadCollections();
         LoadItems();
     }
 
