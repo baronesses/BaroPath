@@ -1123,6 +1123,99 @@
                         <Button Content="Открыть папку базы"
                                 Height="34"
                                 Command="{Binding OpenDatabaseFolderCommand}"/>
+                        
+                        <Expander Header="Настройки"
+          Foreground="{StaticResource TextPrimary}"
+          Background="{StaticResource PanelBackground}"
+          Margin="0,16,0,0">
+
+    <Border Background="{StaticResource PanelBackgroundAlt}"
+            BorderBrush="{StaticResource InputBorder}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="10"
+            Margin="0,8,0,0">
+
+        <StackPanel>
+            <TextBlock Text="Everything / ES"
+                       FontSize="15"
+                       FontWeight="Bold"
+                       Margin="0,0,0,8"/>
+
+            <TextBlock Text="es.exe"
+                       Foreground="{StaticResource TextSecondary}"
+                       Margin="0,0,0,4"/>
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Text="{Binding SettingsEsPath, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Путь к es.exe"/>
+
+                <Button Grid.Column="1"
+                        Content="Выбрать"
+                        Margin="6,0,0,0"
+                        Command="{Binding ChooseEsPathCommand}"/>
+            </Grid>
+
+            <TextBlock Text="Everything.exe"
+                       Foreground="{StaticResource TextSecondary}"
+                       Margin="0,0,0,4"/>
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Text="{Binding SettingsEverythingPath, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Путь к Everything.exe"/>
+
+                <Button Grid.Column="1"
+                        Content="Выбрать"
+                        Margin="6,0,0,0"
+                        Command="{Binding ChooseEverythingPathCommand}"/>
+            </Grid>
+
+            <CheckBox Content="Автоматически запускать Everything"
+                      IsChecked="{Binding SettingsAutoStartEverything}"
+                      Margin="0,0,0,12"/>
+
+            <UniformGrid Columns="2" Margin="0,0,0,8">
+                <Button Content="Сохранить"
+                        Height="34"
+                        Margin="0,0,6,6"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding SaveSettingsCommand}"/>
+
+                <Button Content="Проверить"
+                        Height="34"
+                        Margin="0,0,0,6"
+                        Command="{Binding TestEverythingSettingsCommand}"/>
+
+                <Button Content="Папка настроек"
+                        Height="34"
+                        Margin="0,0,6,6"
+                        Command="{Binding OpenSettingsFolderCommand}"/>
+
+                <Button Content="Папка tools"
+                        Height="34"
+                        Margin="0,0,0,6"
+                        Command="{Binding OpenToolsFolderCommand}"/>
+            </UniformGrid>
+
+            <TextBlock Text="{Binding SettingsFilePath}"
+                       Foreground="{StaticResource TextSecondary}"
+                       FontSize="11"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+    </Border>
+</Expander>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

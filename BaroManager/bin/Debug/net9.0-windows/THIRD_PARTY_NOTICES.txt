@@ -1,0 +1,26 @@
+﻿Third-party notices for BaroManager
+
+This application may bundle or integrate with the following third-party tools:
+
+1. Everything
+   Website: voidtools.com
+   Component files may include:
+   - Everything.exe
+   - es.exe
+
+   Everything and ES are developed by voidtools.
+
+   If Everything/ES are distributed with BaroManager, the original voidtools
+   license file must be included alongside the bundled binaries, for example:
+
+   tools/everything/License.txt
+
+   Do not use the Lite version of Everything for BaroManager integration,
+   because the Lite version does not support the command line interface / IPC
+   required by es.exe.
+
+2. Microsoft .NET / WPF / Entity Framework Core
+   BaroManager is built on Microsoft .NET technologies and NuGet packages.
+   Their licenses are distributed by their respective owners.
+
+BaroManager itself is licensed under the license in LICENSE.txt.

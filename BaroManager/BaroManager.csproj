@@ -19,6 +19,14 @@
         <None Include="tools\everything\**\*.*"
               CopyToOutputDirectory="PreserveNewest"
               CopyToPublishDirectory="Always" />
+        <None Update="THIRD_PARTY_NOTICES.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        </None>
+        <None Update="LICENSE.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

@@ -142,3 +142,6 @@ E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\refint\BaroManag
 E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\BaroManager.pdb
 E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\BaroManager.genruntimeconfig.cache
 E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\ref\BaroManager.dll
+E:\BaroManager\BaroManager\BaroManager\bin\Debug\net9.0-windows\LICENSE.txt
+E:\BaroManager\BaroManager\BaroManager\bin\Debug\net9.0-windows\THIRD_PARTY_NOTICES.txt
+E:\BaroManager\BaroManager\BaroManager\bin\Debug\net9.0-windows\tools\everything\License.txt

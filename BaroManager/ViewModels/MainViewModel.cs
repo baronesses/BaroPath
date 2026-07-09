@@ -105,6 +105,17 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string newNote = string.Empty;
+    
+    [ObservableProperty]
+    private string settingsEsPath = string.Empty;
+
+    [ObservableProperty]
+    private string settingsEverythingPath = string.Empty;
+
+    [ObservableProperty]
+    private bool settingsAutoStartEverything = true;
+
+    public string SettingsFilePath => AppSettingsService.SettingsPath;
 
     [ObservableProperty]
     private bool newIsFavorite;
@@ -133,6 +144,8 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(AppDbContext db)
     {
         _db = db;
+        
+        LoadSettingsToFields();
 
         LoadCollections();
         LoadItems();
@@ -254,6 +267,142 @@ public partial class MainViewModel : ObservableObject
         SelectedCollection = createdCollection;
         SelectedTargetCollection = createdCollection;
     }
+    
+    
+    
+    private void LoadSettingsToFields()
+{
+    var settings = AppSettingsService.Load();
+
+    SettingsEsPath = settings.EverythingEsPath;
+    SettingsEverythingPath = settings.EverythingExePath;
+    SettingsAutoStartEverything = settings.AutoStartEverything;
+}
+
+[RelayCommand]
+private void SaveSettings()
+{
+    var settings = new AppSettings
+    {
+        EverythingEsPath = SettingsEsPath?.Trim() ?? string.Empty,
+        EverythingExePath = SettingsEverythingPath?.Trim() ?? string.Empty,
+        AutoStartEverything = SettingsAutoStartEverything,
+        Language = "ru",
+        Theme = "dark"
+    };
+
+    AppSettingsService.Save(settings);
+
+    WpfMessageBox.Show(
+        "Настройки сохранены.",
+        "Настройки"
+    );
+}
+
+[RelayCommand]
+private void ChooseEsPath()
+{
+    var dialog = new OpenFileDialog
+    {
+        Title = "Выбери es.exe",
+        Filter = "es.exe|es.exe|Executable files (*.exe)|*.exe|All files (*.*)|*.*",
+        CheckFileExists = true
+    };
+
+    if (dialog.ShowDialog() != true)
+        return;
+
+    SettingsEsPath = dialog.FileName;
+}
+
+[RelayCommand]
+private void ChooseEverythingPath()
+{
+    var dialog = new OpenFileDialog
+    {
+        Title = "Выбери Everything.exe",
+        Filter = "Everything.exe|Everything.exe|Executable files (*.exe)|*.exe|All files (*.*)|*.*",
+        CheckFileExists = true
+    };
+
+    if (dialog.ShowDialog() != true)
+        return;
+
+    SettingsEverythingPath = dialog.FileName;
+}
+
+[RelayCommand]
+private void TestEverythingSettings()
+{
+    SaveSettings();
+
+    try
+    {
+        var esPath = EverythingSearchService.GetResolvedEsPath();
+        var everythingPath = EverythingSearchService.GetResolvedEverythingPath();
+
+        var results = EverythingSearchService.Search("*", 1);
+
+        WpfMessageBox.Show(
+            "Everything работает.\n\n" +
+            $"es.exe:\n{esPath}\n\n" +
+            $"Everything.exe:\n{everythingPath}\n\n" +
+            $"Тестовых результатов: {results.Count}",
+            "Everything test"
+        );
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(
+            ex.Message,
+            "Everything test error"
+        );
+    }
+}
+
+[RelayCommand]
+private void OpenSettingsFolder()
+{
+    try
+    {
+        Directory.CreateDirectory(AppSettingsService.SettingsDirectory);
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = AppSettingsService.SettingsDirectory,
+            UseShellExecute = true
+        });
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(
+            ex.Message,
+            "Settings folder error"
+        );
+    }
+}
+
+[RelayCommand]
+private void OpenToolsFolder()
+{
+    try
+    {
+        Directory.CreateDirectory(AppSettingsService.ToolsEverythingDirectory);
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = AppSettingsService.ToolsEverythingDirectory,
+            UseShellExecute = true
+        });
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(
+            ex.Message,
+            "Tools folder error"
+        );
+    }
+}
     
     [RelayCommand]
 private void ExportBackup()
