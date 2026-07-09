@@ -4,30 +4,25 @@ obj/
 release/
 publish/
 
-# User / IDE
-.vs/
+# IDE
 .idea/
+.vs/
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
+*.DotSettings.user
 
-# Logs
-*.log
-
-# Database / local settings
+# Local app data
 *.db
 *.sqlite
 *.sqlite3
 settings.json
 
+# Third-party binaries: put these only into Release zip, not source repo
+tools/everything/*.exe
+
 # OS
-.DS_Store
 Thumbs.db
+.DS_Store
 
-# Rider
-.idea/
-*.DotSettings.user
-
-# Visual Studio / debug
-*.pdb
+# Logs
+*.log
