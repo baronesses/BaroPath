@@ -55,6 +55,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string searchText = string.Empty;
+    
+    [ObservableProperty]
+    private bool isItemFormExpanded;
 
     [ObservableProperty]
     private bool showOnlyMissing;
@@ -621,6 +624,8 @@ public partial class MainViewModel : ObservableObject
     {
         if (item is null)
             return;
+        
+        IsItemFormExpanded = true;
 
         var entity = _db.ManagedItems
             .AsNoTracking()
@@ -793,6 +798,9 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ChooseFolder()
     {
+        
+        IsItemFormExpanded = true;
+        
         using var dialog = new WinForms.FolderBrowserDialog
         {
             Description = "Выбери папку",
@@ -952,6 +960,8 @@ public partial class MainViewModel : ObservableObject
         NewNote = string.Empty;
         NewIsFavorite = false;
         NewRunOnAppStart = false;
+        
+        IsItemFormExpanded = false;
     }
 
     private static (bool ExistsNow, string PathStatus) EvaluatePathStatus(ManagedItem item)

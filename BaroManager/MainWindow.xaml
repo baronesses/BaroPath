@@ -407,118 +407,129 @@
                        Margin="12,0,0,4"/>
         </DockPanel>
 
-        <Border Grid.Row="1"
-                Background="{StaticResource PanelBackground}"
-                Padding="12"
-                Margin="0,0,0,12"
-                BorderThickness="1"
-                BorderBrush="{StaticResource InputBorder}"
-                CornerRadius="10">
+<Expander Grid.Row="1"
+          IsExpanded="{Binding IsItemFormExpanded}"
+          Margin="0,0,0,12"
+          Foreground="{StaticResource TextPrimary}"
+          Background="{StaticResource PanelBackground}">
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="120"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="120"/>
-                    <ColumnDefinition Width="280"/>
-                </Grid.ColumnDefinitions>
+    <Expander.Header>
+        <DockPanel>
+            <TextBlock Text="{Binding FormTitleText}"
+                       FontSize="17"
+                       FontWeight="Bold"
+                       DockPanel.Dock="Left"/>
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <TextBlock Text="  / нажми, чтобы открыть форму добавления или редактирования"
+                       Foreground="{StaticResource TextSecondary}"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       Margin="8,2,0,0"/>
+        </DockPanel>
+    </Expander.Header>
 
-                <TextBlock Grid.Row="0"
-                           Grid.Column="0"
-                           Grid.ColumnSpan="4"
-                           Text="{Binding FormTitleText}"
-                           FontSize="17"
-                           FontWeight="Bold"
-                           Margin="0,0,0,8"/>
+    <Border Background="{StaticResource PanelBackground}"
+            Padding="12"
+            Margin="0,8,0,0"
+            BorderThickness="1"
+            BorderBrush="{StaticResource InputBorder}"
+            CornerRadius="10">
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Название:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="1" Grid.Column="1"
-                         Text="{Binding NewTitle, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="6"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="280"/>
+            </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="1" Grid.Column="2" Text="Тип:" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="1" Grid.Column="3"
-                          ItemsSource="{Binding ItemTypes}"
-                          SelectedItem="{Binding SelectedItemType}"
-                          Margin="6"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Путь:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="2" Grid.Column="1"
-                         Text="{Binding NewPath, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="6"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Название:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1"
+                     Text="{Binding NewTitle, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
 
-                <StackPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
-                            Orientation="Horizontal"
-                            Margin="6">
-                    <Button Content="Файл"
-                            Width="80"
-                            Margin="0,0,6,0"
-                            Command="{Binding ChooseFileCommand}"/>
-                    <Button Content="Папка"
-                            Width="80"
-                            Command="{Binding ChooseFolderCommand}"/>
-                </StackPanel>
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Тип:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="3"
+                      ItemsSource="{Binding ItemTypes}"
+                      SelectedItem="{Binding SelectedItemType}"
+                      Margin="6"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Аргументы:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="3" Grid.Column="1"
-                         Text="{Binding NewArguments, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="6"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Путь:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1"
+                     Text="{Binding NewPath, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="2" Text="Раб. папка:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="3" Grid.Column="3"
-                         Text="{Binding NewWorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="6"/>
+            <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
+                        Orientation="Horizontal"
+                        Margin="6">
+                <Button Content="Файл"
+                        Width="80"
+                        Margin="0,0,6,0"
+                        Command="{Binding ChooseFileCommand}"/>
+                <Button Content="Папка"
+                        Width="80"
+                        Command="{Binding ChooseFolderCommand}"/>
+            </StackPanel>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Теги:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="4" Grid.Column="1"
-                         Text="{Binding NewTags, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="6"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Аргументы:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1"
+                     Text="{Binding NewArguments, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
 
-                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center"
-                            Margin="6">
-                    <CheckBox Content="Избранное"
-                              IsChecked="{Binding NewIsFavorite}"
-                              Margin="0,0,16,0"/>
-                    <CheckBox Content="Запускать с менеджером"
-                              IsChecked="{Binding NewRunOnAppStart}"/>
-                </StackPanel>
+            <TextBlock Grid.Row="2" Grid.Column="2" Text="Раб. папка:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="3"
+                     Text="{Binding NewWorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Заметка:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="5" Grid.Column="1"
-                         Text="{Binding NewNote, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="6"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Теги:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="3" Grid.Column="1"
+                     Text="{Binding NewTags, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
 
-                <StackPanel Grid.Row="5"
-                            Grid.Column="3"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            Margin="6">
-                    <Button Content="{Binding MainActionText}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Width="130"
-                            Height="32"
-                            Margin="0,0,6,0"
-                            Command="{Binding AddItemCommand}"/>
+            <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="6">
+                <CheckBox Content="Избранное"
+                          IsChecked="{Binding NewIsFavorite}"
+                          Margin="0,0,16,0"/>
+                <CheckBox Content="Запускать с менеджером"
+                          IsChecked="{Binding NewRunOnAppStart}"/>
+            </StackPanel>
 
-                    <Button Content="Отмена"
-                            Width="90"
-                            Height="32"
-                            Command="{Binding CancelEditCommand}"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Заметка:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="4" Grid.Column="1"
+                     Text="{Binding NewNote, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
 
+            <StackPanel Grid.Row="4"
+                        Grid.Column="3"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="6">
+                <Button Content="{Binding MainActionText}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Width="130"
+                        Height="32"
+                        Margin="0,0,6,0"
+                        Command="{Binding AddItemCommand}"/>
+
+                <Button Content="Отмена"
+                        Width="90"
+                        Height="32"
+                        Command="{Binding CancelEditCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Expander>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="270"/>
