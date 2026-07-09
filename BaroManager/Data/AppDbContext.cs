@@ -15,11 +15,11 @@ public class AppDbContext : DbContext
         get
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            return Path.Combine(appData, "BaroManager");
+            return Path.Combine(appData, "BaroPath");
         }
     }
 
-    public static string DatabasePath => Path.Combine(DatabaseDirectory, "baromanager.db");
+    public static string DatabasePath => Path.Combine(DatabaseDirectory, "baropath.db");
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

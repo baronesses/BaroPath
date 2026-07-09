@@ -17,7 +17,7 @@ public static class AppSettingsService
         get
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            return Path.Combine(appData, "BaroManager");
+            return Path.Combine(appData, "BaroPath");
         }
     }
 

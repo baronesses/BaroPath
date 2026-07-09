@@ -1,6 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+    
 
     <PropertyGroup>
+        <AssemblyName>BaroPath</AssemblyName>
+        <Product>BaroPath</Product>
+        <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+        <Version>0.1.0</Version>
+        <FileVersion>0.1.0.0</FileVersion>
+        <AssemblyVersion>0.1.0.0</AssemblyVersion>
+        
         <OutputType>WinExe</OutputType>
         <TargetFramework>net9.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
@@ -19,14 +27,18 @@
         <None Include="tools\everything\**\*.*"
               CopyToOutputDirectory="PreserveNewest"
               CopyToPublishDirectory="Always" />
-        <None Update="THIRD_PARTY_NOTICES.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-        </None>
-        <None Update="LICENSE.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-        </None>
+        <Content Include="Assets\**\*.*"
+                 CopyToOutputDirectory="PreserveNewest"
+                 CopyToPublishDirectory="Always" />
+        <None Include="LICENSE.txt"
+              CopyToOutputDirectory="PreserveNewest"
+              CopyToPublishDirectory="Always"
+              Condition="Exists('LICENSE.txt')" />
+
+        <None Include="THIRD_PARTY_NOTICES.txt"
+              CopyToOutputDirectory="PreserveNewest"
+              CopyToPublishDirectory="Always"
+              Condition="Exists('THIRD_PARTY_NOTICES.txt')" />
     </ItemGroup>
 
 </Project>
