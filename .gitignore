@@ -1,0 +1,33 @@
+﻿# Build
+bin/
+obj/
+release/
+publish/
+
+# IDE
+.idea/
+.vs/
+*.user
+*.suo
+*.DotSettings.user
+
+# Rider / JetBrains
+dataSources.xml
+encodings.xml
+indexLayout.xml
+vcs.xml
+workspace.xml
+.idea/**
+
+# Local app data
+*.db
+*.sqlite
+*.sqlite3
+settings.json
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
