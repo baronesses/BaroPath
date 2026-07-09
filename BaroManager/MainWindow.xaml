@@ -1028,6 +1028,27 @@
                                  TextWrapping="Wrap"
                                  MinHeight="90"
                                  VerticalContentAlignment="Top"/>
+                        
+                        <TextBlock Text="Обслуживание"
+                                   FontSize="15"
+                                   FontWeight="Bold"
+                                   Margin="0,16,0,6"/>
+
+                        <UniformGrid Columns="2" Margin="0,0,0,8">
+                            <Button Content="Экспорт JSON"
+                                    Height="34"
+                                    Margin="0,0,6,6"
+                                    Command="{Binding ExportBackupCommand}"/>
+
+                            <Button Content="Импорт JSON"
+                                    Height="34"
+                                    Margin="0,0,0,6"
+                                    Command="{Binding ImportBackupCommand}"/>
+                        </UniformGrid>
+
+                        <Button Content="Открыть папку базы"
+                                Height="34"
+                                Command="{Binding OpenDatabaseFolderCommand}"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

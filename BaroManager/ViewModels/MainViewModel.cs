@@ -1,11 +1,14 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using BaroManager.Data;
 using BaroManager.Models;
 using BaroManager.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using WpfClipboard = System.Windows.Clipboard;
 using WpfMessageBox = System.Windows.MessageBox;
@@ -251,6 +254,110 @@ public partial class MainViewModel : ObservableObject
         SelectedCollection = createdCollection;
         SelectedTargetCollection = createdCollection;
     }
+    
+    [RelayCommand]
+private void ExportBackup()
+{
+    var dialog = new SaveFileDialog
+    {
+        Title = "Сохранить backup BaroManager",
+        Filter = "BaroManager backup (*.json)|*.json|JSON (*.json)|*.json|All files (*.*)|*.*",
+        FileName = $"baromanager-backup-{DateTime.Now:yyyyMMdd-HHmmss}.json"
+    };
+
+    if (dialog.ShowDialog() != true)
+        return;
+
+    try
+    {
+        BackupService.Export(_db, dialog.FileName);
+
+        WpfMessageBox.Show(
+            $"Backup сохранён:\n\n{dialog.FileName}",
+            "Backup"
+        );
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(
+            ex.Message,
+            "Backup export error"
+        );
+    }
+}
+
+[RelayCommand]
+private void ImportBackup()
+{
+    var dialog = new OpenFileDialog
+    {
+        Title = "Выбери backup BaroManager",
+        Filter = "BaroManager backup (*.json)|*.json|JSON (*.json)|*.json|All files (*.*)|*.*",
+        CheckFileExists = true
+    };
+
+    if (dialog.ShowDialog() != true)
+        return;
+
+    var answer = WpfMessageBox.Show(
+        "Импорт объединит данные с текущей базой.\n\n" +
+        "Существующие пути будут обновлены, новые — добавлены.\n" +
+        "Ничего автоматически удаляться не будет.\n\n" +
+        "Продолжить?",
+        "Import backup",
+        WpfMessageBoxButton.YesNo,
+        WpfMessageBoxImage.Question
+    );
+
+    if (answer != WpfMessageBoxResult.Yes)
+        return;
+
+    try
+    {
+        var result = BackupService.Import(_db, dialog.FileName);
+
+        LoadCollections();
+        LoadItems();
+
+        WpfMessageBox.Show(
+            "Импорт завершён.\n\n" +
+            $"Списков создано: {result.CollectionsCreated}\n" +
+            $"Элементов создано: {result.ItemsCreated}\n" +
+            $"Элементов обновлено: {result.ItemsUpdated}\n" +
+            $"Связей со списками создано: {result.LinksCreated}",
+            "Import backup"
+        );
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(
+            ex.Message,
+            "Backup import error"
+        );
+    }
+}
+
+[RelayCommand]
+private void OpenDatabaseFolder()
+{
+    try
+    {
+        Directory.CreateDirectory(AppDbContext.DatabaseDirectory);
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = AppDbContext.DatabaseDirectory,
+            UseShellExecute = true
+        });
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(
+            ex.Message,
+            "Database folder error"
+        );
+    }
+}
 
     [RelayCommand]
     private void RenameSelectedCollection()
