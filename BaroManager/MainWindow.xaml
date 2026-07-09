@@ -293,7 +293,9 @@
                           IsReadOnly="True"
                           GridLinesVisibility="Horizontal"
                           HeadersVisibility="Column"
-                          SelectionMode="Single">
+                          SelectionMode="Single"
+                          RowHeight="30"
+                          FontSize="13">
 
                     <DataGrid.Columns>
                         <DataGridCheckBoxColumn Header="★"
@@ -301,12 +303,12 @@
                                                 Width="40"/>
 
                         <DataGridTextColumn Header="Статус"
-                                            Binding="{Binding StatusText}"
-                                            Width="115"/>
+                                            Binding="{Binding StatusDisplay}"
+                                            Width="150"/>
 
                         <DataGridTextColumn Header="Тип"
-                                            Binding="{Binding ItemType}"
-                                            Width="80"/>
+                                            Binding="{Binding TypeDisplay}"
+                                            Width="120"/>
 
                         <DataGridTextColumn Header="Название"
                                             Binding="{Binding Title}"

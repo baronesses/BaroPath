@@ -51,4 +51,25 @@ public class ManagedItem
         "Command" => "Command",
         _ => "Unknown"
     };
+
+    [NotMapped]
+    public string StatusDisplay => PathStatus switch
+    {
+        "OK" => "✅ OK",
+        "Missing" => "❌ Missing",
+        "WorkDirMissing" => "⚠ Work dir missing",
+        "Command" => "⌨ Command",
+        _ => "❔ Unknown"
+    };
+
+    [NotMapped]
+    public string TypeDisplay => ItemType switch
+    {
+        "Folder" => "📁 Folder",
+        "File" => "📄 File",
+        "App" => "🚀 App",
+        "Script" => "⚙ Script",
+        "Command" => "⌨ Command",
+        _ => $"❔ {ItemType}"
+    };
 }
