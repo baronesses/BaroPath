@@ -116,3 +116,5 @@ E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\refint\BaroManag
 E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\BaroManager.pdb
 E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\BaroManager.genruntimeconfig.cache
 E:\BaroManager\BaroManager\BaroManager\obj\Debug\net9.0-windows\ref\BaroManager.dll
+E:\BaroManager\BaroManager\BaroManager\bin\Debug\net9.0-windows\tools\everything\es.exe
+E:\BaroManager\BaroManager\BaroManager\bin\Debug\net9.0-windows\tools\everything\Everything.exe

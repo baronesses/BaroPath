@@ -23,6 +23,8 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<ManagedItem> Items { get; } = new();
 
     public ObservableCollection<ManagedCollection> Collections { get; } = new();
+    
+    public ObservableCollection<EverythingSearchResult> EverythingResults { get; } = new();
 
     public string[] ItemTypes { get; } =
     [
@@ -55,6 +57,15 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string searchText = string.Empty;
+    
+    [ObservableProperty]
+    private string everythingQuery = string.Empty;
+
+    [ObservableProperty]
+    private int everythingMaxResults = 100;
+
+    [ObservableProperty]
+    private EverythingSearchResult? selectedEverythingResult;
     
     [ObservableProperty]
     private bool isItemFormExpanded;
@@ -910,6 +921,327 @@ public partial class MainViewModel : ObservableObject
         LoadCollections();
         LoadItems();
     }
+    
+    [RelayCommand]
+private void SearchEverything()
+{
+    EverythingResults.Clear();
+
+    if (string.IsNullOrWhiteSpace(EverythingQuery))
+    {
+        WpfMessageBox.Show("Введите запрос для Everything.", "Everything search");
+        return;
+    }
+
+    try
+    {
+        var results = EverythingSearchService.Search(EverythingQuery, EverythingMaxResults);
+
+        foreach (var result in results)
+            EverythingResults.Add(result);
+
+        if (EverythingResults.Count == 0)
+            WpfMessageBox.Show("Ничего не найдено.", "Everything search");
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(ex.Message, "Everything search error");
+    }
+}
+
+[RelayCommand]
+private void FindMovedSelectedItem()
+{
+    if (SelectedItem is null)
+    {
+        WpfMessageBox.Show("Сначала выбери элемент, который надо найти.", "Recovery");
+        return;
+    }
+
+    var oldPath = SelectedItem.Path.TrimEnd('\\', '/');
+    var fileName = Path.GetFileName(oldPath);
+
+    if (string.IsNullOrWhiteSpace(fileName))
+    {
+        WpfMessageBox.Show("Не удалось вытащить имя файла/папки из старого пути.", "Recovery");
+        return;
+    }
+
+    EverythingQuery = fileName;
+    EverythingResults.Clear();
+
+    try
+    {
+        var results = EverythingSearchService.Search(fileName, EverythingMaxResults);
+
+        var ordered = results
+            .OrderByDescending(x => ScoreRecoveryCandidate(SelectedItem, x))
+            .ToList();
+
+        foreach (var result in ordered)
+            EverythingResults.Add(result);
+
+        SelectedEverythingResult = EverythingResults.FirstOrDefault();
+
+        if (EverythingResults.Count == 0)
+        {
+            WpfMessageBox.Show(
+                $"По имени \"{fileName}\" ничего не найдено.",
+                "Recovery"
+            );
+            return;
+        }
+
+        WpfMessageBox.Show(
+            $"Найдено кандидатов: {EverythingResults.Count}\n\nВыбери подходящий результат в Everything search и нажми Use ES path.",
+            "Recovery"
+        );
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(ex.Message, "Recovery error");
+    }
+}
+
+[RelayCommand]
+private void UpdateSelectedItemPathFromEverything()
+{
+    if (SelectedItem is null)
+    {
+        WpfMessageBox.Show("Сначала выбери элемент BaroManager.", "Recovery");
+        return;
+    }
+
+    if (SelectedEverythingResult is null)
+    {
+        WpfMessageBox.Show("Сначала выбери результат Everything.", "Recovery");
+        return;
+    }
+
+    var newPath = SelectedEverythingResult.Path.Trim();
+
+    if (!File.Exists(newPath) && !Directory.Exists(newPath))
+    {
+        WpfMessageBox.Show("Выбранный путь уже не существует.", "Recovery");
+        return;
+    }
+
+    var entity = _db.ManagedItems.FirstOrDefault(x => x.Id == SelectedItem.Id);
+
+    if (entity is null)
+    {
+        WpfMessageBox.Show("Элемент не найден в базе.", "Recovery");
+        LoadItems();
+        return;
+    }
+
+    var duplicate = _db.ManagedItems.FirstOrDefault(x =>
+        x.Id != entity.Id &&
+        x.Path == newPath
+    );
+
+    if (duplicate is not null)
+    {
+        WpfMessageBox.Show(
+            $"Такой путь уже есть у другого элемента:\n\n{duplicate.Title}",
+            "Recovery"
+        );
+        return;
+    }
+
+    var newItemType = SelectedEverythingResult.ItemType;
+    var newWorkingDirectory = SelectedEverythingResult.DirectoryPath;
+
+    var status = EvaluatePathStatus(newPath, newItemType, newWorkingDirectory);
+
+    entity.Path = newPath;
+    entity.ItemType = newItemType;
+    entity.WorkingDirectory = newWorkingDirectory;
+    entity.ExistsNow = status.ExistsNow;
+    entity.PathStatus = status.PathStatus;
+    entity.LastCheckedAt = DateTime.Now;
+    entity.UpdatedAt = DateTime.Now;
+
+    _db.SaveChanges();
+
+    var updatedId = entity.Id;
+
+    LoadItems();
+
+    SelectedItem = Items.FirstOrDefault(x => x.Id == updatedId);
+
+    WpfMessageBox.Show(
+        "Путь обновлён из Everything.",
+        "Recovery"
+    );
+}
+
+private static int ScoreRecoveryCandidate(ManagedItem oldItem, EverythingSearchResult candidate)
+{
+    var score = 0;
+
+    var oldPath = oldItem.Path.TrimEnd('\\', '/');
+    var oldName = Path.GetFileName(oldPath);
+    var candidateName = Path.GetFileName(candidate.Path);
+
+    if (string.Equals(oldName, candidateName, StringComparison.OrdinalIgnoreCase))
+        score += 100;
+
+    var oldExt = Path.GetExtension(oldPath);
+    var candidateExt = Path.GetExtension(candidate.Path);
+
+    if (!string.IsNullOrWhiteSpace(oldExt) &&
+        string.Equals(oldExt, candidateExt, StringComparison.OrdinalIgnoreCase))
+    {
+        score += 25;
+    }
+
+    if (string.Equals(oldItem.ItemType, candidate.ItemType, StringComparison.OrdinalIgnoreCase))
+        score += 15;
+
+    var oldParent = Path.GetFileName(Path.GetDirectoryName(oldPath) ?? string.Empty);
+
+    if (!string.IsNullOrWhiteSpace(oldParent) &&
+        candidate.Path.Contains(oldParent, StringComparison.OrdinalIgnoreCase))
+    {
+        score += 10;
+    }
+
+    return score;
+}
+
+[RelayCommand]
+private void AddEverythingResult(EverythingSearchResult? result)
+{
+    if (result is null)
+    {
+        WpfMessageBox.Show("Сначала выбери результат Everything.", "BaroManager");
+        return;
+    }
+
+    if (!File.Exists(result.Path) && !Directory.Exists(result.Path))
+    {
+        WpfMessageBox.Show("Этот путь уже не существует.", "BaroManager");
+        return;
+    }
+
+    var cleanPath = result.Path.Trim();
+
+    var existingItem = _db.ManagedItems.FirstOrDefault(x => x.Path == cleanPath);
+
+    if (existingItem is not null)
+    {
+        if (SelectedCollection is not null)
+        {
+            var linked = LinkItemToCollection(existingItem.Id, SelectedCollection.Id);
+
+            if (linked)
+            {
+                WpfMessageBox.Show(
+                    "Этот путь уже был в менеджере, поэтому я просто добавил его в выбранный список.",
+                    "BaroManager"
+                );
+
+                LoadCollections();
+                LoadItems();
+                return;
+            }
+        }
+
+        WpfMessageBox.Show("Такой путь уже есть в BaroManager.", "BaroManager");
+        return;
+    }
+
+    var itemType = result.ItemType;
+
+    var status = EvaluatePathStatus(cleanPath, itemType, result.DirectoryPath);
+
+    var item = new ManagedItem
+    {
+        Title = GuessTitle(cleanPath),
+        Path = cleanPath,
+        ItemType = itemType,
+        Arguments = null,
+        WorkingDirectory = result.DirectoryPath,
+        Tags = null,
+        Note = "Added from Everything search",
+        IsFavorite = false,
+        RunOnAppStart = false,
+        ExistsNow = status.ExistsNow,
+        PathStatus = status.PathStatus,
+        LastCheckedAt = DateTime.Now,
+        CreatedAt = DateTime.Now,
+        UpdatedAt = DateTime.Now
+    };
+
+    _db.ManagedItems.Add(item);
+    _db.SaveChanges();
+
+    if (SelectedCollection is not null)
+        LinkItemToCollection(item.Id, SelectedCollection.Id);
+
+    LoadCollections();
+    LoadItems();
+
+    WpfMessageBox.Show("Добавлено в BaroManager.", "Everything search");
+}
+
+[RelayCommand]
+private void OpenEverythingResult(EverythingSearchResult? result)
+{
+    if (result is null)
+        return;
+
+    try
+    {
+        var item = new ManagedItem
+        {
+            Title = result.Name,
+            Path = result.Path,
+            ItemType = result.ItemType,
+            WorkingDirectory = result.DirectoryPath
+        };
+
+        ItemLauncher.Open(item);
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(ex.Message, "Ошибка открытия");
+    }
+}
+
+[RelayCommand]
+private void OpenEverythingResultInExplorer(EverythingSearchResult? result)
+{
+    if (result is null)
+        return;
+
+    try
+    {
+        var item = new ManagedItem
+        {
+            Title = result.Name,
+            Path = result.Path,
+            ItemType = result.ItemType,
+            WorkingDirectory = result.DirectoryPath
+        };
+
+        ItemLauncher.OpenInExplorer(item);
+    }
+    catch (Exception ex)
+    {
+        WpfMessageBox.Show(ex.Message, "Ошибка Explorer");
+    }
+}
+
+[RelayCommand]
+private void CopyEverythingResultPath(EverythingSearchResult? result)
+{
+    if (result is null)
+        return;
+
+    WpfClipboard.SetText(result.Path);
+}
 
     private bool LinkItemToCollection(int itemId, int collectionId)
     {

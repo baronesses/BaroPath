@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaroManager", "BaroManager\BaroManager.csproj", "{77028581-05EB-493A-B7DB-F2125E6C9674}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{77028581-05EB-493A-B7DB-F2125E6C9674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77028581-05EB-493A-B7DB-F2125E6C9674}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77028581-05EB-493A-B7DB-F2125E6C9674}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77028581-05EB-493A-B7DB-F2125E6C9674}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

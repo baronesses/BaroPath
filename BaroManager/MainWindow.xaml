@@ -642,6 +642,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -713,8 +714,115 @@
                            Margin="2,0,0,8"
                            Foreground="{StaticResource TextSecondary}"
                            Text="Выбери элемент в таблице — действия и детали будут справа."/>
+                
+                <Expander Grid.Row="2"
+          Header="Everything search"
+          Foreground="{StaticResource TextPrimary}"
+          Background="{StaticResource PanelBackground}"
+          Margin="0,0,0,10">
 
-                <DataGrid Grid.Row="2"
+    <Border Background="{StaticResource PanelBackground}"
+            BorderBrush="{StaticResource InputBorder}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="10"
+            Margin="0,8,0,0">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="170"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="120"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Height="32"
+                         Text="{Binding EverythingQuery, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Everything search query"/>
+
+                <TextBox Grid.Column="1"
+                         Height="32"
+                         Margin="6,0,0,0"
+                         Text="{Binding EverythingMaxResults, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Max results"/>
+
+                <Button Grid.Column="2"
+                        Content="Search"
+                        Height="32"
+                        Margin="6,0,0,0"
+                        Command="{Binding SearchEverythingCommand}"/>
+
+                <Button Grid.Column="3"
+                        Content="Open"
+                        Height="32"
+                        Margin="6,0,0,0"
+                        Command="{Binding OpenEverythingResultCommand}"
+                        CommandParameter="{Binding SelectedEverythingResult}"/>
+
+                <Button Grid.Column="4"
+                        Content="Explorer"
+                        Height="32"
+                        Margin="6,0,0,0"
+                        Command="{Binding OpenEverythingResultInExplorerCommand}"
+                        CommandParameter="{Binding SelectedEverythingResult}"/>
+
+                <Button Grid.Column="5"
+                        Content="Copy path"
+                        Height="32"
+                        Margin="6,0,0,0"
+                        Command="{Binding CopyEverythingResultPathCommand}"
+                        CommandParameter="{Binding SelectedEverythingResult}"/>
+
+                <Button Grid.Column="6"
+                        Content="Add selected"
+                        Height="32"
+                        Margin="6,0,0,0"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding AddEverythingResultCommand}"
+                        CommandParameter="{Binding SelectedEverythingResult}"/>
+            </Grid>
+
+            <DataGrid Grid.Row="1"
+                      ItemsSource="{Binding EverythingResults}"
+                      SelectedItem="{Binding SelectedEverythingResult}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      SelectionMode="Single"
+                      RowHeight="28"
+                      FontSize="12">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Тип"
+                                        Binding="{Binding TypeDisplay}"
+                                        Width="110"/>
+
+                    <DataGridTextColumn Header="Имя"
+                                        Binding="{Binding Name}"
+                                        Width="220"/>
+
+                    <DataGridTextColumn Header="Путь"
+                                        Binding="{Binding Path}"
+                                        Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Border>
+</Expander>
+
+                <DataGrid Grid.Row="3"
                           ItemsSource="{Binding Items}"
                           SelectedItem="{Binding SelectedItem}"
                           AutoGenerateColumns="False"
@@ -844,6 +952,16 @@
                                     Margin="0,0,0,6"
                                     Command="{Binding RemoveFromCurrentListCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
+                            
+                            <Button Content="Find moved"
+                                    Height="34"
+                                    Margin="0,0,6,6"
+                                    Command="{Binding FindMovedSelectedItemCommand}"/>
+
+                            <Button Content="Use ES path"
+                                    Height="34"
+                                    Margin="0,0,0,6"
+                                    Command="{Binding UpdateSelectedItemPathFromEverythingCommand}"/>
                         </UniformGrid>
 
                         <Button Content="Delete All"
