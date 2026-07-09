@@ -32,6 +32,18 @@ public partial class MainViewModel : ObservableObject
         "Script",
         "Command"
     ];
+    
+    public string[] FilterModes { get; } =
+    [
+        "All",
+        "Favorites",
+        "Missing",
+        "Commands",
+        "Startup",
+        "Folders",
+        "Scripts",
+        "Apps"
+    ];
 
     public string MainActionText => EditingItemId is null
         ? "Добавить"
@@ -46,6 +58,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool showOnlyMissing;
+    
+    [ObservableProperty]
+    private string selectedFilterMode = "All";
 
     [ObservableProperty]
     private string newTitle = string.Empty;
@@ -106,6 +121,11 @@ public partial class MainViewModel : ObservableObject
     }
 
     partial void OnShowOnlyMissingChanged(bool value)
+    {
+        LoadItems();
+    }
+    
+    partial void OnSelectedFilterModeChanged(string value)
     {
         LoadItems();
     }
@@ -376,6 +396,28 @@ public partial class MainViewModel : ObservableObject
                 x.PathStatus == "WorkDirMissing"
             );
         }
+
+        query = SelectedFilterMode switch
+        {
+            "Favorites" => query.Where(x => x.IsFavorite),
+
+            "Missing" => query.Where(x =>
+                x.PathStatus == "Missing" ||
+                x.PathStatus == "WorkDirMissing"
+            ),
+
+            "Commands" => query.Where(x => x.ItemType == "Command"),
+
+            "Startup" => query.Where(x => x.RunOnAppStart),
+
+            "Folders" => query.Where(x => x.ItemType == "Folder"),
+
+            "Scripts" => query.Where(x => x.ItemType == "Script"),
+
+            "Apps" => query.Where(x => x.ItemType == "App"),
+
+            _ => query
+        };
 
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
