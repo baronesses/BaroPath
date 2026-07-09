@@ -625,10 +625,18 @@
                     </Border>
 
                     <DockPanel Grid.Row="4">
+                        <TextBlock DockPanel.Dock="Bottom"
+                                   Text="Drag &amp; drop: перетащи элемент из таблицы на список, чтобы добавить. Перетащи на «Все элементы», чтобы убрать из текущего списка."
+                                   Foreground="{StaticResource TextSecondary}"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"/>
+
                         <Button DockPanel.Dock="Top"
                                 Content="Все элементы"
                                 Height="32"
                                 Margin="0,0,0,8"
+                                ToolTip="Показать все элементы. Если перетащить сюда элемент из выбранного списка — он будет убран из этого списка."
                                 AllowDrop="True"
                                 DragOver="AllItemsButton_DragOver"
                                 Drop="AllItemsButton_Drop"
@@ -638,6 +646,7 @@
                                  ItemsSource="{Binding Collections}"
                                  SelectedItem="{Binding SelectedCollection}"
                                  DisplayMemberPath="DisplayName"
+                                 ToolTip="Перетащи сюда элемент из таблицы, чтобы добавить его в список."
                                  AllowDrop="True"
                                  DragOver="CollectionListBox_DragOver"
                                  Drop="CollectionListBox_Drop"/>
@@ -736,7 +745,7 @@
                            Text="Выбери элемент в таблице — действия и детали будут справа."/>
                 
                 <Expander Grid.Row="2"
-          Header="Everything search"
+                          Header="Поиск Everything"
           Foreground="{StaticResource TextPrimary}"
           Background="{StaticResource PanelBackground}"
           Margin="0,0,0,10">
@@ -783,7 +792,7 @@
                         Command="{Binding SearchEverythingCommand}"/>
 
                 <Button Grid.Column="3"
-                        Content="Open"
+                        Content="Найти"
                         Height="32"
                         Margin="6,0,0,0"
                         Command="{Binding OpenEverythingResultCommand}"
@@ -855,11 +864,66 @@
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           IsReadOnly="True"
+                          MouseDoubleClick="MainItemsGrid_MouseDoubleClick"
+                          KeyDown="MainItemsGrid_KeyDown"
                           GridLinesVisibility="Horizontal"
                           HeadersVisibility="Column"
                           SelectionMode="Single"
                           RowHeight="32"
                           FontSize="13">
+                    
+                    <DataGrid.ContextMenu>
+    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+        <MenuItem Header="Открыть"
+                  Command="{Binding OpenItemCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <MenuItem Header="Показать в проводнике"
+                  Command="{Binding OpenInExplorerCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <MenuItem Header="Запустить"
+                  Command="{Binding RunItemCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <Separator/>
+
+        <MenuItem Header="Копировать путь"
+                  Command="{Binding CopyPathCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <MenuItem Header="Редактировать"
+                  Command="{Binding EditItemCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <Separator/>
+
+        <MenuItem Header="Найти переехавший файл"
+                  Command="{Binding FindMovedSelectedItemCommand}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <MenuItem Header="Взять выбранный путь из Everything"
+                  Command="{Binding UpdateSelectedItemPathFromEverythingCommand}"
+                  IsEnabled="{Binding CanUseEverythingPath}"/>
+
+        <Separator/>
+
+        <MenuItem Header="Убрать из текущего списка"
+                  Command="{Binding RemoveFromCurrentListCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+
+        <MenuItem Header="Удалить полностью"
+                  Command="{Binding DeleteItemCommand}"
+                  CommandParameter="{Binding SelectedItem}"
+                  IsEnabled="{Binding HasSelectedItem}"/>
+    </ContextMenu>
+</DataGrid.ContextMenu>
 
                     <DataGrid.Columns>
                         <DataGridCheckBoxColumn Header="★"

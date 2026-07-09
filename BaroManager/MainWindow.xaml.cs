@@ -15,6 +15,8 @@ using WpfPoint = System.Windows.Point;
 using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
 using WpfDragEventArgs = System.Windows.DragEventArgs;
 using WpfDragDropEffects = System.Windows.DragDropEffects;
+using WpfKey = System.Windows.Input.Key;
+using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace BaroManager;
 
@@ -132,6 +134,54 @@ public partial class MainWindow : System.Windows.Window
             return;
 
         DragDrop.DoDragDrop(row, item, WpfDragDropEffects.Copy | WpfDragDropEffects.Move);
+    }
+    
+    
+    private void MainItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
+
+        if (row?.Item is not ManagedItem item)
+            return;
+
+        if (DataContext is not MainViewModel viewModel)
+            return;
+
+        if (viewModel.OpenItemCommand.CanExecute(item))
+            viewModel.OpenItemCommand.Execute(item);
+    }
+
+    private void MainItemsGrid_KeyDown(object sender, WpfKeyEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel)
+            return;
+
+        if (MainItemsGrid.SelectedItem is not ManagedItem item)
+            return;
+
+        switch (e.Key)
+        {
+            case WpfKey.Enter:
+                if (viewModel.OpenItemCommand.CanExecute(item))
+                    viewModel.OpenItemCommand.Execute(item);
+
+                e.Handled = true;
+                break;
+
+            case WpfKey.F2:
+                if (viewModel.EditItemCommand.CanExecute(item))
+                    viewModel.EditItemCommand.Execute(item);
+
+                e.Handled = true;
+                break;
+
+            case WpfKey.C when Keyboard.Modifiers.HasFlag(ModifierKeys.Control):
+                if (viewModel.CopyPathCommand.CanExecute(item))
+                    viewModel.CopyPathCommand.Execute(item);
+
+                e.Handled = true;
+                break;
+        }
     }
 
     private void CollectionListBox_DragOver(object sender, WpfDragEventArgs e)
