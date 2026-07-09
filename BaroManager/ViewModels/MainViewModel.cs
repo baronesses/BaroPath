@@ -45,6 +45,9 @@ public partial class MainViewModel : ObservableObject
     private string searchText = string.Empty;
 
     [ObservableProperty]
+    private bool showOnlyMissing;
+
+    [ObservableProperty]
     private string newTitle = string.Empty;
 
     [ObservableProperty]
@@ -102,6 +105,11 @@ public partial class MainViewModel : ObservableObject
         LoadItems();
     }
 
+    partial void OnShowOnlyMissingChanged(bool value)
+    {
+        LoadItems();
+    }
+
     partial void OnSelectedCollectionChanged(ManagedCollection? value)
     {
         SelectedCollectionName = value?.Name ?? string.Empty;
@@ -153,10 +161,7 @@ public partial class MainViewModel : ObservableObject
         if (selectedTargetCollectionId is not null)
             SelectedTargetCollection = Collections.FirstOrDefault(x => x.Id == selectedTargetCollectionId.Value);
 
-        if (SelectedCollection is null)
-            SelectedCollectionName = string.Empty;
-        else
-            SelectedCollectionName = SelectedCollection.Name;
+        SelectedCollectionName = SelectedCollection?.Name ?? string.Empty;
     }
 
     [RelayCommand]
@@ -294,6 +299,56 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void CheckPaths()
+    {
+        var items = _db.ManagedItems.ToList();
+
+        var ok = 0;
+        var missing = 0;
+        var workDirMissing = 0;
+        var commands = 0;
+        var checkedAt = DateTime.Now;
+
+        foreach (var item in items)
+        {
+            var result = EvaluatePathStatus(item);
+
+            item.ExistsNow = result.ExistsNow;
+            item.PathStatus = result.PathStatus;
+            item.LastCheckedAt = checkedAt;
+            item.UpdatedAt = checkedAt;
+
+            switch (result.PathStatus)
+            {
+                case "OK":
+                    ok++;
+                    break;
+
+                case "Missing":
+                    missing++;
+                    break;
+
+                case "WorkDirMissing":
+                    workDirMissing++;
+                    break;
+
+                case "Command":
+                    commands++;
+                    break;
+            }
+        }
+
+        _db.SaveChanges();
+
+        LoadItems();
+
+        WpfMessageBox.Show(
+            $"Проверка завершена.\n\nOK: {ok}\nMissing: {missing}\nWork dir missing: {workDirMissing}\nCommand: {commands}",
+            "Check paths"
+        );
+    }
+
+    [RelayCommand]
     private void LoadItems()
     {
         Items.Clear();
@@ -314,6 +369,14 @@ public partial class MainViewModel : ObservableObject
             query = query.Where(x => itemIdsInCollection.Contains(x.Id));
         }
 
+        if (ShowOnlyMissing)
+        {
+            query = query.Where(x =>
+                x.PathStatus == "Missing" ||
+                x.PathStatus == "WorkDirMissing"
+            );
+        }
+
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             var search = SearchText.Trim();
@@ -322,6 +385,7 @@ public partial class MainViewModel : ObservableObject
                 x.Title.Contains(search) ||
                 x.Path.Contains(search) ||
                 x.ItemType.Contains(search) ||
+                x.PathStatus.Contains(search) ||
                 (x.Tags != null && x.Tags.Contains(search)) ||
                 (x.Note != null && x.Note.Contains(search))
             );
@@ -329,6 +393,7 @@ public partial class MainViewModel : ObservableObject
 
         var items = query
             .OrderByDescending(x => x.IsFavorite)
+            .ThenBy(x => x.PathStatus == "Missing" ? 0 : x.PathStatus == "WorkDirMissing" ? 1 : 2)
             .ThenByDescending(x => x.LastUsedAt)
             .ThenBy(x => x.Title)
             .ToList();
@@ -399,6 +464,8 @@ public partial class MainViewModel : ObservableObject
             ? GuessTitle(cleanPath)
             : NewTitle.Trim();
 
+        var status = EvaluatePathStatus(cleanPath, SelectedItemType, NewWorkingDirectory);
+
         var item = new ManagedItem
         {
             Title = title,
@@ -410,6 +477,9 @@ public partial class MainViewModel : ObservableObject
             Note = string.IsNullOrWhiteSpace(NewNote) ? null : NewNote.Trim(),
             IsFavorite = NewIsFavorite,
             RunOnAppStart = NewRunOnAppStart,
+            ExistsNow = status.ExistsNow,
+            PathStatus = status.PathStatus,
+            LastCheckedAt = DateTime.Now,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
@@ -479,6 +549,8 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        var status = EvaluatePathStatus(cleanPath, SelectedItemType, NewWorkingDirectory);
+
         entity.Title = string.IsNullOrWhiteSpace(NewTitle)
             ? GuessTitle(cleanPath)
             : NewTitle.Trim();
@@ -491,6 +563,9 @@ public partial class MainViewModel : ObservableObject
         entity.Note = string.IsNullOrWhiteSpace(NewNote) ? null : NewNote.Trim();
         entity.IsFavorite = NewIsFavorite;
         entity.RunOnAppStart = NewRunOnAppStart;
+        entity.ExistsNow = status.ExistsNow;
+        entity.PathStatus = status.PathStatus;
+        entity.LastCheckedAt = DateTime.Now;
         entity.UpdatedAt = DateTime.Now;
 
         _db.SaveChanges();
@@ -835,6 +910,33 @@ public partial class MainViewModel : ObservableObject
         NewNote = string.Empty;
         NewIsFavorite = false;
         NewRunOnAppStart = false;
+    }
+
+    private static (bool ExistsNow, string PathStatus) EvaluatePathStatus(ManagedItem item)
+    {
+        return EvaluatePathStatus(item.Path, item.ItemType, item.WorkingDirectory ?? string.Empty);
+    }
+
+    private static (bool ExistsNow, string PathStatus) EvaluatePathStatus(
+        string path,
+        string itemType,
+        string workingDirectory)
+    {
+        if (itemType == "Command")
+            return (true, "Command");
+
+        var pathExists = File.Exists(path) || Directory.Exists(path);
+
+        if (!pathExists)
+            return (false, "Missing");
+
+        if (!string.IsNullOrWhiteSpace(workingDirectory) &&
+            !Directory.Exists(workingDirectory))
+        {
+            return (true, "WorkDirMissing");
+        }
+
+        return (true, "OK");
     }
 
     private static string GuessTitle(string path)

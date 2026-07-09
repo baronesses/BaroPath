@@ -9,7 +9,7 @@ public class AppDbContext : DbContext
         "Server=127.0.0.1;Port=3306;Database=baromanager;User=baro;Password=baro12345;";
 
     public DbSet<ManagedItem> ManagedItems => Set<ManagedItem>();
-    
+
     public DbSet<ManagedCollection> ManagedCollections => Set<ManagedCollection>();
 
     public DbSet<ManagedItemCollection> ItemCollections => Set<ManagedItemCollection>();
@@ -54,11 +54,19 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Note)
                 .HasColumnType("text");
 
+            entity.Property(x => x.ExistsNow)
+                .HasDefaultValue(true);
+
+            entity.Property(x => x.PathStatus)
+                .HasMaxLength(50)
+                .HasDefaultValue("Unknown");
+
             entity.HasIndex(x => x.Title);
             entity.HasIndex(x => x.Path);
             entity.HasIndex(x => x.ItemType);
+            entity.HasIndex(x => x.PathStatus);
         });
-        
+
         modelBuilder.Entity<ManagedCollection>(entity =>
         {
             entity.ToTable("collections");

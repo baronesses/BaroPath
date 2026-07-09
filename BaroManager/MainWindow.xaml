@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BaroManager"
         Height="760"
-        Width="1450"
+        Width="1550"
         MinHeight="650"
-        MinWidth="1150"
+        MinWidth="1200"
         WindowStartupLocation="CenterScreen">
 
     <Grid Margin="14">
@@ -243,6 +243,8 @@
                 <Grid Grid.Row="0" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="125"/>
+                        <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="260"/>
                     </Grid.ColumnDefinitions>
@@ -251,15 +253,27 @@
                              Height="34"
                              FontSize="15"
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Поиск по названию, пути, типу, тегам и заметкам"/>
+                             ToolTip="Поиск по названию, пути, типу, статусу, тегам и заметкам"/>
 
-                    <TextBlock Grid.Column="1"
+                    <CheckBox Grid.Column="1"
+                              Content="Only missing"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"
+                              IsChecked="{Binding ShowOnlyMissing}"/>
+
+                    <Button Grid.Column="2"
+                            Content="Check paths"
+                            Height="34"
+                            Margin="6,0,0,0"
+                            Command="{Binding CheckPathsCommand}"/>
+
+                    <TextBlock Grid.Column="3"
                                Text="Целевой список:"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Right"
                                Margin="0,0,8,0"/>
 
-                    <ComboBox Grid.Column="2"
+                    <ComboBox Grid.Column="4"
                               Height="34"
                               ItemsSource="{Binding Collections}"
                               SelectedItem="{Binding SelectedTargetCollection}"
@@ -269,7 +283,7 @@
                 <TextBlock Grid.Row="1"
                            Margin="0,0,0,8"
                            Foreground="#777"
-                           Text="Add to list добавляет элемент в целевой список. Move to list переносит из выбранного слева списка в целевой."/>
+                           Text="Check paths проверяет, существуют ли сохранённые пути. Recovery через Everything добавим позже."/>
 
                 <DataGrid Grid.Row="2"
                           ItemsSource="{Binding Items}"
@@ -285,6 +299,10 @@
                         <DataGridCheckBoxColumn Header="★"
                                                 Binding="{Binding IsFavorite}"
                                                 Width="40"/>
+
+                        <DataGridTextColumn Header="Статус"
+                                            Binding="{Binding StatusText}"
+                                            Width="115"/>
 
                         <DataGridTextColumn Header="Тип"
                                             Binding="{Binding ItemType}"

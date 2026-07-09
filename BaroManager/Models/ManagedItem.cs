@@ -1,4 +1,6 @@
-﻿namespace BaroManager.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BaroManager.Models;
 
 public class ManagedItem
 {
@@ -25,11 +27,28 @@ public class ManagedItem
 
     public bool RunOnWindowsStartup { get; set; }
 
+    public bool ExistsNow { get; set; } = true;
+
+    public DateTime? LastCheckedAt { get; set; }
+
+    // Unknown, OK, Missing, WorkDirMissing, Command
+    public string PathStatus { get; set; } = "Unknown";
+
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public DateTime? UpdatedAt { get; set; }
 
     public DateTime? LastUsedAt { get; set; }
-    
+
     public ICollection<ManagedItemCollection> Collections { get; set; } = new List<ManagedItemCollection>();
+
+    [NotMapped]
+    public string StatusText => PathStatus switch
+    {
+        "OK" => "OK",
+        "Missing" => "Missing",
+        "WorkDirMissing" => "Work dir missing",
+        "Command" => "Command",
+        _ => "Unknown"
+    };
 }

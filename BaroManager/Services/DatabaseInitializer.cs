@@ -35,5 +35,31 @@ CREATE TABLE IF NOT EXISTS item_collections (
         ON DELETE CASCADE
 ) CHARACTER SET utf8mb4;
 ");
+
+        TryExecuteSql(db, "ALTER TABLE items ADD COLUMN ExistsNow tinyint(1) NOT NULL DEFAULT 1;");
+        TryExecuteSql(db, "ALTER TABLE items ADD COLUMN LastCheckedAt datetime(6) NULL;");
+        TryExecuteSql(db, "ALTER TABLE items ADD COLUMN PathStatus varchar(50) NOT NULL DEFAULT 'Unknown';");
+        TryExecuteSql(db, "ALTER TABLE items ADD INDEX IX_items_PathStatus (PathStatus);");
+    }
+
+    private static void TryExecuteSql(AppDbContext db, string sql)
+    {
+        try
+        {
+            db.Database.ExecuteSqlRaw(sql);
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message.ToLowerInvariant();
+
+            if (message.Contains("duplicate column") ||
+                message.Contains("duplicate key") ||
+                message.Contains("already exists"))
+            {
+                return;
+            }
+
+            throw;
+        }
     }
 }
