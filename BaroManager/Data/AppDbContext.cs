@@ -1,25 +1,31 @@
-﻿using BaroManager.Models;
+﻿using System.IO;
+using BaroManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BaroManager.Data;
 
 public class AppDbContext : DbContext
 {
-    private const string ConnectionString =
-        "Server=127.0.0.1;Port=3306;Database=baromanager;User=baro;Password=baro12345;";
-
     public DbSet<ManagedItem> ManagedItems => Set<ManagedItem>();
-
     public DbSet<ManagedCollection> ManagedCollections => Set<ManagedCollection>();
-
     public DbSet<ManagedItemCollection> ItemCollections => Set<ManagedItemCollection>();
+
+    public static string DatabaseDirectory
+    {
+        get
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(appData, "BaroManager");
+        }
+    }
+
+    public static string DatabasePath => Path.Combine(DatabaseDirectory, "baromanager.db");
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseMySql(
-            ConnectionString,
-            ServerVersion.AutoDetect(ConnectionString)
-        );
+        Directory.CreateDirectory(DatabaseDirectory);
+
+        optionsBuilder.UseSqlite($"Data Source={DatabasePath}");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,35 +37,44 @@ public class AppDbContext : DbContext
             entity.HasKey(x => x.Id);
 
             entity.Property(x => x.Title)
-                .HasMaxLength(255)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(300);
 
             entity.Property(x => x.Path)
-                .HasMaxLength(2000)
                 .IsRequired();
 
             entity.Property(x => x.ItemType)
-                .HasMaxLength(50)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(50);
 
-            entity.Property(x => x.Arguments)
-                .HasMaxLength(2000);
+            entity.Property(x => x.Arguments);
+            entity.Property(x => x.WorkingDirectory);
+            entity.Property(x => x.Tags);
+            entity.Property(x => x.Note);
 
-            entity.Property(x => x.WorkingDirectory)
-                .HasMaxLength(2000);
+            entity.Property(x => x.IsFavorite)
+                .HasDefaultValue(false);
 
-            entity.Property(x => x.Tags)
-                .HasMaxLength(1000);
+            entity.Property(x => x.RunOnAppStart)
+                .HasDefaultValue(false);
 
-            entity.Property(x => x.Note)
-                .HasColumnType("text");
+            entity.Property(x => x.RunOnWindowsStartup)
+                .HasDefaultValue(false);
 
             entity.Property(x => x.ExistsNow)
                 .HasDefaultValue(true);
 
             entity.Property(x => x.PathStatus)
+                .IsRequired()
                 .HasMaxLength(50)
                 .HasDefaultValue("Unknown");
+
+            entity.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            entity.Property(x => x.UpdatedAt);
+            entity.Property(x => x.LastUsedAt);
+            entity.Property(x => x.LastCheckedAt);
 
             entity.HasIndex(x => x.Title);
             entity.HasIndex(x => x.Path);
@@ -74,26 +89,28 @@ public class AppDbContext : DbContext
             entity.HasKey(x => x.Id);
 
             entity.Property(x => x.Name)
-                .HasMaxLength(255)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(200);
 
             entity.Property(x => x.SortOrder)
                 .HasDefaultValue(0);
 
-            entity.HasIndex(x => x.Name);
+            entity.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            entity.HasIndex(x => x.Name)
+                .IsUnique();
         });
 
         modelBuilder.Entity<ManagedItemCollection>(entity =>
         {
             entity.ToTable("item_collections");
 
-            entity.HasKey(x => new { x.ManagedItemId, x.CollectionId });
-
-            entity.Property(x => x.ManagedItemId)
-                .HasColumnName("managed_item_id");
-
-            entity.Property(x => x.CollectionId)
-                .HasColumnName("collection_id");
+            entity.HasKey(x => new
+            {
+                x.ManagedItemId,
+                x.CollectionId
+            });
 
             entity.HasOne(x => x.ManagedItem)
                 .WithMany(x => x.Collections)
