@@ -33,6 +33,14 @@ public partial class MainViewModel : ObservableObject
         "Command"
     ];
 
+    public string MainActionText => EditingItemId is null
+        ? "Добавить"
+        : "Сохранить";
+
+    public string FormTitleText => EditingItemId is null
+        ? "Новый элемент"
+        : "Редактирование элемента";
+
     [ObservableProperty]
     private string searchText = string.Empty;
 
@@ -72,6 +80,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private ManagedCollection? selectedCollection;
 
+    [ObservableProperty]
+    private int? editingItemId;
+
     public MainViewModel(AppDbContext db)
     {
         _db = db;
@@ -88,6 +99,12 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedCollectionChanged(ManagedCollection? value)
     {
         LoadItems();
+    }
+
+    partial void OnEditingItemIdChanged(int? value)
+    {
+        OnPropertyChanged(nameof(MainActionText));
+        OnPropertyChanged(nameof(FormTitleText));
     }
 
     [RelayCommand]
@@ -192,6 +209,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void AddItem()
     {
+        if (EditingItemId is not null)
+        {
+            UpdateEditingItem();
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(NewPath))
         {
             WpfMessageBox.Show("Путь пустой. Ну камон.", "BaroManager");
@@ -285,6 +308,147 @@ public partial class MainViewModel : ObservableObject
         }
 
         ClearForm();
+        LoadItems();
+    }
+
+    private void UpdateEditingItem()
+    {
+        if (EditingItemId is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(NewPath))
+        {
+            WpfMessageBox.Show("Путь пустой. Ну камон.", "BaroManager");
+            return;
+        }
+
+        var cleanPath = NewPath.Trim();
+
+        if (SelectedItemType != "Command" &&
+            !File.Exists(cleanPath) &&
+            !Directory.Exists(cleanPath))
+        {
+            var result = WpfMessageBox.Show(
+                "Такой путь сейчас не существует. Всё равно сохранить?",
+                "Путь не найден",
+                WpfMessageBoxButton.YesNo,
+                WpfMessageBoxImage.Warning
+            );
+
+            if (result != WpfMessageBoxResult.Yes)
+                return;
+        }
+
+        var entity = _db.ManagedItems.FirstOrDefault(x => x.Id == EditingItemId.Value);
+
+        if (entity is null)
+        {
+            WpfMessageBox.Show("Элемент не найден в базе.", "BaroManager");
+            ClearForm();
+            LoadItems();
+            return;
+        }
+
+        var duplicate = _db.ManagedItems.FirstOrDefault(x =>
+            x.Id != entity.Id &&
+            x.Path == cleanPath
+        );
+
+        if (duplicate is not null)
+        {
+            WpfMessageBox.Show(
+                "Другой элемент уже использует такой путь. Дубль не сохраняю.",
+                "BaroManager"
+            );
+            return;
+        }
+
+        entity.Title = string.IsNullOrWhiteSpace(NewTitle)
+            ? GuessTitle(cleanPath)
+            : NewTitle.Trim();
+
+        entity.Path = cleanPath;
+        entity.ItemType = SelectedItemType;
+        entity.Arguments = string.IsNullOrWhiteSpace(NewArguments) ? null : NewArguments.Trim();
+        entity.WorkingDirectory = string.IsNullOrWhiteSpace(NewWorkingDirectory) ? null : NewWorkingDirectory.Trim();
+        entity.Tags = string.IsNullOrWhiteSpace(NewTags) ? null : NewTags.Trim();
+        entity.Note = string.IsNullOrWhiteSpace(NewNote) ? null : NewNote.Trim();
+        entity.IsFavorite = NewIsFavorite;
+        entity.RunOnAppStart = NewRunOnAppStart;
+        entity.UpdatedAt = DateTime.Now;
+
+        _db.SaveChanges();
+
+        ClearForm();
+        LoadItems();
+    }
+
+    [RelayCommand]
+    private void EditItem(ManagedItem? item)
+    {
+        if (item is null)
+            return;
+
+        var entity = _db.ManagedItems
+            .AsNoTracking()
+            .FirstOrDefault(x => x.Id == item.Id);
+
+        if (entity is null)
+        {
+            WpfMessageBox.Show("Элемент не найден в базе.", "BaroManager");
+            LoadItems();
+            return;
+        }
+
+        EditingItemId = entity.Id;
+
+        NewTitle = entity.Title;
+        NewPath = entity.Path;
+        SelectedItemType = entity.ItemType;
+        NewArguments = entity.Arguments ?? string.Empty;
+        NewWorkingDirectory = entity.WorkingDirectory ?? string.Empty;
+        NewTags = entity.Tags ?? string.Empty;
+        NewNote = entity.Note ?? string.Empty;
+        NewIsFavorite = entity.IsFavorite;
+        NewRunOnAppStart = entity.RunOnAppStart;
+    }
+
+    [RelayCommand]
+    private void CancelEdit()
+    {
+        ClearForm();
+    }
+
+    [RelayCommand]
+    private void RemoveFromCurrentList(ManagedItem? item)
+    {
+        if (item is null)
+            return;
+
+        if (SelectedCollection is null)
+        {
+            WpfMessageBox.Show(
+                "Сначала выбери конкретный список слева. Из режима 'Все элементы' удалять из списка нечего.",
+                "BaroManager"
+            );
+            return;
+        }
+
+        var link = _db.ItemCollections.FirstOrDefault(x =>
+            x.ManagedItemId == item.Id &&
+            x.CollectionId == SelectedCollection.Id
+        );
+
+        if (link is null)
+        {
+            WpfMessageBox.Show("Этого элемента и так нет в выбранном списке.", "BaroManager");
+            LoadItems();
+            return;
+        }
+
+        _db.ItemCollections.Remove(link);
+        _db.SaveChanges();
+
         LoadItems();
     }
 
@@ -405,8 +569,8 @@ public partial class MainViewModel : ObservableObject
             return;
 
         var result = WpfMessageBox.Show(
-            $"Удалить из менеджера?\n\n{item.Title}",
-            "Удаление",
+            $"Удалить элемент ВЕЗДЕ из менеджера?\n\n{item.Title}\n\nФайл на диске не удаляется, только запись из BaroManager.",
+            "Глобальное удаление",
             WpfMessageBoxButton.YesNo,
             WpfMessageBoxImage.Question
         );
@@ -421,6 +585,9 @@ public partial class MainViewModel : ObservableObject
 
         _db.ManagedItems.Remove(entity);
         _db.SaveChanges();
+
+        if (EditingItemId == item.Id)
+            ClearForm();
 
         LoadItems();
     }
@@ -442,6 +609,8 @@ public partial class MainViewModel : ObservableObject
 
     private void ClearForm()
     {
+        EditingItemId = null;
+
         NewTitle = string.Empty;
         NewPath = string.Empty;
         SelectedItemType = "Folder";
