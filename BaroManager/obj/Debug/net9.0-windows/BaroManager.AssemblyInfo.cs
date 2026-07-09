@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BaroManager")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+153fd514cc7626f6eb55ec6eb8307a429a0bfbe1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e819987e16c415a874283eddf0a03709308516dc")]
 [assembly: System.Reflection.AssemblyProductAttribute("BaroManager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BaroManager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
