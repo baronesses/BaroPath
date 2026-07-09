@@ -21,6 +21,12 @@ public partial class MainViewModel : ObservableObject
     private readonly AppDbContext _db;
 
     public ObservableCollection<ManagedItem> Items { get; } = new();
+    
+    public bool HasSelectedItem => SelectedItem is not null;
+
+    public bool HasSelectedEverythingResult => SelectedEverythingResult is not null;
+
+    public bool CanUseEverythingPath => SelectedItem is not null && SelectedEverythingResult is not null;
 
     public ObservableCollection<ManagedCollection> Collections { get; } = new();
     
@@ -133,10 +139,22 @@ public partial class MainViewModel : ObservableObject
     {
         LoadItems();
     }
+    
+    partial void OnSelectedItemChanged(ManagedItem? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedItem));
+        OnPropertyChanged(nameof(CanUseEverythingPath));
+    }
 
     partial void OnShowOnlyMissingChanged(bool value)
     {
         LoadItems();
+    }
+    
+    partial void OnSelectedEverythingResultChanged(EverythingSearchResult? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedEverythingResult));
+        OnPropertyChanged(nameof(CanUseEverythingPath));
     }
     
     partial void OnSelectedFilterModeChanged(string value)
