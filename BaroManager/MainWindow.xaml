@@ -629,11 +629,18 @@
                                 Content="Все элементы"
                                 Height="32"
                                 Margin="0,0,0,8"
+                                AllowDrop="True"
+                                DragOver="AllItemsButton_DragOver"
+                                Drop="AllItemsButton_Drop"
                                 Command="{Binding ShowAllCommand}"/>
 
-                        <ListBox ItemsSource="{Binding Collections}"
+                        <ListBox x:Name="CollectionsListBox"
+                                 ItemsSource="{Binding Collections}"
                                  SelectedItem="{Binding SelectedCollection}"
-                                 DisplayMemberPath="DisplayName"/>
+                                 DisplayMemberPath="DisplayName"
+                                 AllowDrop="True"
+                                 DragOver="CollectionListBox_DragOver"
+                                 Drop="CollectionListBox_Drop"/>
                     </DockPanel>
                 </Grid>
             </Border>
@@ -839,9 +846,12 @@
     </Border>
 </Expander>
 
-                <DataGrid Grid.Row="3"
+                <DataGrid x:Name="MainItemsGrid"
+                          Grid.Row="3"
                           ItemsSource="{Binding Items}"
                           SelectedItem="{Binding SelectedItem}"
+                          PreviewMouseLeftButtonDown="MainItemsGrid_PreviewMouseLeftButtonDown"
+                          MouseMove="MainItemsGrid_MouseMove"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           IsReadOnly="True"

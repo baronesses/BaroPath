@@ -1368,6 +1368,78 @@ private void CopyEverythingResultPath(EverythingSearchResult? result)
     WpfClipboard.SetText(result.Path);
 }
 
+
+public void AddExistingItemToCollection(ManagedItem? item, ManagedCollection? collection)
+{
+    if (item is null || collection is null)
+        return;
+
+    var itemExists = _db.ManagedItems.Any(x => x.Id == item.Id);
+    var collectionExists = _db.ManagedCollections.Any(x => x.Id == collection.Id);
+
+    if (!itemExists || !collectionExists)
+        return;
+
+    var alreadyLinked = _db.ItemCollections.Any(x =>
+        x.ManagedItemId == item.Id &&
+        x.CollectionId == collection.Id
+    );
+
+    if (alreadyLinked)
+        return;
+
+    _db.ItemCollections.Add(new ManagedItemCollection
+    {
+        ManagedItemId = item.Id,
+        CollectionId = collection.Id
+    });
+
+    _db.SaveChanges();
+
+    var selectedItemId = item.Id;
+    var selectedCollectionId = SelectedCollection?.Id;
+
+    LoadCollections();
+
+    if (selectedCollectionId is not null)
+        SelectedCollection = Collections.FirstOrDefault(x => x.Id == selectedCollectionId);
+
+    LoadItems();
+
+    SelectedItem = Items.FirstOrDefault(x => x.Id == selectedItemId);
+}
+
+public void RemoveExistingItemFromCurrentCollection(ManagedItem? item)
+{
+    if (item is null)
+        return;
+
+    if (SelectedCollection is null)
+    {
+        WpfMessageBox.Show(
+            "Сначала выбери конкретный список слева.\n\n" +
+            "Из режима «Все элементы» вытаскивать нечего.",
+            "Drag & drop"
+        );
+
+        return;
+    }
+
+    var link = _db.ItemCollections.FirstOrDefault(x =>
+        x.ManagedItemId == item.Id &&
+        x.CollectionId == SelectedCollection.Id
+    );
+
+    if (link is null)
+        return;
+
+    _db.ItemCollections.Remove(link);
+    _db.SaveChanges();
+
+    LoadCollections();
+    LoadItems();
+}
+
     private bool LinkItemToCollection(int itemId, int collectionId)
     {
         var alreadyLinked = _db.ItemCollections.Any(x =>
