@@ -51,6 +51,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.WorkingDirectory);
             entity.Property(x => x.Tags);
             entity.Property(x => x.Note);
+            entity.Property(x => x.IconPath);
 
             entity.Property(x => x.IsFavorite)
                 .HasDefaultValue(false);

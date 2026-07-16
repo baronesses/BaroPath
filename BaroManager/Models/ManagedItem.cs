@@ -1,5 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
+using System.Windows.Media;
+using BaroManager.Services;
+
 namespace BaroManager.Models;
 
 public class ManagedItem
@@ -21,6 +24,8 @@ public class ManagedItem
 
     public string? Note { get; set; }
 
+    public string? IconPath { get; set; }
+
     public bool IsFavorite { get; set; }
 
     public bool RunOnAppStart { get; set; }
@@ -41,6 +46,9 @@ public class ManagedItem
     public DateTime? LastUsedAt { get; set; }
 
     public ICollection<ManagedItemCollection> Collections { get; set; } = new List<ManagedItemCollection>();
+
+    [NotMapped]
+    public ImageSource IconSource => ItemIconService.GetIcon(this);
 
     [NotMapped]
     public string StatusText => PathStatus switch

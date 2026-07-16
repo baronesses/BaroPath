@@ -105,6 +105,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string newNote = string.Empty;
+
+    [ObservableProperty]
+    private string newIconPath = string.Empty;
     
     [ObservableProperty]
     private string settingsEsPath = string.Empty;
@@ -114,6 +117,11 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool settingsAutoStartEverything = true;
+
+    [ObservableProperty]
+    private bool isGridView;
+
+    public bool IsListView => !IsGridView;
 
     public string SettingsFilePath => AppSettingsService.SettingsPath;
 
@@ -188,6 +196,11 @@ public partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(MainActionText));
         OnPropertyChanged(nameof(FormTitleText));
+    }
+
+    partial void OnIsGridViewChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsListView));
     }
 
     [RelayCommand]
@@ -277,6 +290,7 @@ public partial class MainViewModel : ObservableObject
     SettingsEsPath = settings.EverythingEsPath;
     SettingsEverythingPath = settings.EverythingExePath;
     SettingsAutoStartEverything = settings.AutoStartEverything;
+    IsGridView = string.Equals(settings.ItemViewMode, "Grid", StringComparison.OrdinalIgnoreCase);
 }
 
 [RelayCommand]
@@ -288,7 +302,8 @@ private void SaveSettings()
         EverythingExePath = SettingsEverythingPath?.Trim() ?? string.Empty,
         AutoStartEverything = SettingsAutoStartEverything,
         Language = "ru",
-        Theme = "dark"
+        Theme = "dark",
+        ItemViewMode = IsGridView ? "Grid" : "List"
     };
 
     AppSettingsService.Save(settings);
@@ -297,6 +312,33 @@ private void SaveSettings()
         "Настройки сохранены.",
         "Настройки"
     );
+}
+
+[RelayCommand]
+private void ShowListView()
+{
+    if (!IsGridView)
+        return;
+
+    IsGridView = false;
+    PersistItemViewMode();
+}
+
+[RelayCommand]
+private void ShowGridView()
+{
+    if (IsGridView)
+        return;
+
+    IsGridView = true;
+    PersistItemViewMode();
+}
+
+private void PersistItemViewMode()
+{
+    var settings = AppSettingsService.Load();
+    settings.ItemViewMode = IsGridView ? "Grid" : "List";
+    AppSettingsService.Save(settings);
 }
 
 [RelayCommand]
@@ -805,6 +847,7 @@ private void OpenDatabaseFolder()
             WorkingDirectory = string.IsNullOrWhiteSpace(NewWorkingDirectory) ? null : NewWorkingDirectory.Trim(),
             Tags = string.IsNullOrWhiteSpace(NewTags) ? null : NewTags.Trim(),
             Note = string.IsNullOrWhiteSpace(NewNote) ? null : NewNote.Trim(),
+            IconPath = string.IsNullOrWhiteSpace(NewIconPath) ? null : NewIconPath.Trim(),
             IsFavorite = NewIsFavorite,
             RunOnAppStart = NewRunOnAppStart,
             ExistsNow = status.ExistsNow,
@@ -891,6 +934,7 @@ private void OpenDatabaseFolder()
         entity.WorkingDirectory = string.IsNullOrWhiteSpace(NewWorkingDirectory) ? null : NewWorkingDirectory.Trim();
         entity.Tags = string.IsNullOrWhiteSpace(NewTags) ? null : NewTags.Trim();
         entity.Note = string.IsNullOrWhiteSpace(NewNote) ? null : NewNote.Trim();
+        entity.IconPath = string.IsNullOrWhiteSpace(NewIconPath) ? null : NewIconPath.Trim();
         entity.IsFavorite = NewIsFavorite;
         entity.RunOnAppStart = NewRunOnAppStart;
         entity.ExistsNow = status.ExistsNow;
@@ -932,6 +976,7 @@ private void OpenDatabaseFolder()
         NewWorkingDirectory = entity.WorkingDirectory ?? string.Empty;
         NewTags = entity.Tags ?? string.Empty;
         NewNote = entity.Note ?? string.Empty;
+        NewIconPath = entity.IconPath ?? string.Empty;
         NewIsFavorite = entity.IsFavorite;
         NewRunOnAppStart = entity.RunOnAppStart;
     }
@@ -1103,6 +1148,28 @@ private void OpenDatabaseFolder()
 
         if (string.IsNullOrWhiteSpace(NewWorkingDirectory))
             NewWorkingDirectory = dialog.SelectedPath;
+    }
+
+    [RelayCommand]
+    private void ChooseIcon()
+    {
+        IsItemFormExpanded = true;
+
+        var dialog = new OpenFileDialog
+        {
+            Title = "Выбери свою иконку",
+            Filter = "Images (*.ico;*.png;*.jpg;*.jpeg;*.bmp;*.gif)|*.ico;*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files (*.*)|*.*",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() == true)
+            NewIconPath = dialog.FileName;
+    }
+
+    [RelayCommand]
+    private void ClearIcon()
+    {
+        NewIconPath = string.Empty;
     }
 
     [RelayCommand]
@@ -1636,6 +1703,7 @@ public void RemoveExistingItemFromCurrentCollection(ManagedItem? item)
         NewWorkingDirectory = string.Empty;
         NewTags = string.Empty;
         NewNote = string.Empty;
+        NewIconPath = string.Empty;
         NewIsFavorite = false;
         NewRunOnAppStart = false;
         

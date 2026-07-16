@@ -49,6 +49,7 @@ public static class BackupService
                     WorkingDirectory = x.WorkingDirectory,
                     Tags = x.Tags,
                     Note = x.Note,
+                    IconPath = x.IconPath,
                     IsFavorite = x.IsFavorite,
                     RunOnAppStart = x.RunOnAppStart,
                     RunOnWindowsStartup = x.RunOnWindowsStartup,
@@ -168,6 +169,7 @@ public static class BackupService
                     WorkingDirectory = itemDto.WorkingDirectory,
                     Tags = itemDto.Tags,
                     Note = itemDto.Note,
+                    IconPath = itemDto.IconPath,
                     IsFavorite = itemDto.IsFavorite,
                     RunOnAppStart = itemDto.RunOnAppStart,
                     RunOnWindowsStartup = itemDto.RunOnWindowsStartup,
@@ -204,6 +206,7 @@ public static class BackupService
                 item.WorkingDirectory = itemDto.WorkingDirectory;
                 item.Tags = itemDto.Tags;
                 item.Note = itemDto.Note;
+                item.IconPath = itemDto.IconPath;
                 item.IsFavorite = itemDto.IsFavorite;
                 item.RunOnAppStart = itemDto.RunOnAppStart;
                 item.RunOnWindowsStartup = itemDto.RunOnWindowsStartup;
@@ -289,6 +292,7 @@ public static class BackupService
         public string? WorkingDirectory { get; set; }
         public string? Tags { get; set; }
         public string? Note { get; set; }
+        public string? IconPath { get; set; }
         public bool IsFavorite { get; set; }
         public bool RunOnAppStart { get; set; }
         public bool RunOnWindowsStartup { get; set; }

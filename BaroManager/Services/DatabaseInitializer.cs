@@ -21,6 +21,7 @@ public static class DatabaseInitializer
         TryExecuteSql(db, "ALTER TABLE items ADD COLUMN ExistsNow INTEGER NOT NULL DEFAULT 1;");
         TryExecuteSql(db, "ALTER TABLE items ADD COLUMN LastCheckedAt TEXT NULL;");
         TryExecuteSql(db, "ALTER TABLE items ADD COLUMN PathStatus TEXT NOT NULL DEFAULT 'Unknown';");
+        TryExecuteSql(db, "ALTER TABLE items ADD COLUMN IconPath TEXT NULL;");
 
         TryExecuteSql(db, "CREATE INDEX IF NOT EXISTS IX_items_PathStatus ON items(PathStatus);");
         TryExecuteSql(db, "CREATE INDEX IF NOT EXISTS IX_items_Title ON items(Title);");

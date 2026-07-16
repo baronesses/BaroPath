@@ -26,6 +26,61 @@
         <SolidColorBrush x:Key="GridLineBrush" Color="#2A2F3D"/>
         <SolidColorBrush x:Key="SelectionBrush" Color="#2A3150"/>
 
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <ContextMenu x:Key="ManagedItemContextMenu"
+                     x:Shared="False"
+                     DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+            <MenuItem Header="Открыть"
+                      Command="{Binding OpenItemCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <MenuItem Header="Показать в проводнике"
+                      Command="{Binding OpenInExplorerCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <MenuItem Header="Запустить"
+                      Command="{Binding RunItemCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <Separator/>
+
+            <MenuItem Header="Копировать путь"
+                      Command="{Binding CopyPathCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <MenuItem Header="Редактировать"
+                      Command="{Binding EditItemCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <Separator/>
+
+            <MenuItem Header="Найти переехавший файл"
+                      Command="{Binding FindMovedSelectedItemCommand}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <MenuItem Header="Взять выбранный путь из Everything"
+                      Command="{Binding UpdateSelectedItemPathFromEverythingCommand}"
+                      IsEnabled="{Binding CanUseEverythingPath}"/>
+
+            <Separator/>
+
+            <MenuItem Header="Убрать из текущего списка"
+                      Command="{Binding RemoveFromCurrentListCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+
+            <MenuItem Header="Удалить полностью"
+                      Command="{Binding DeleteItemCommand}"
+                      CommandParameter="{Binding SelectedItem}"
+                      IsEnabled="{Binding HasSelectedItem}"/>
+        </ContextMenu>
+
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
         </Style>
@@ -105,6 +160,45 @@
                BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+        </Style>
+
+        <Style x:Key="ViewModeToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{StaticResource PanelBackgroundAlt}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="ModeBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ModeBorder" Property="BorderBrush" Value="{StaticResource InputBorderHover}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ModeBorder" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="ModeBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter Property="IsHitTestVisible" Value="False"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style TargetType="CheckBox">
@@ -495,6 +589,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Название:" VerticalAlignment="Center"/>
@@ -535,12 +630,31 @@
                      Text="{Binding NewWorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Теги:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Своя иконка:" VerticalAlignment="Center"/>
             <TextBox Grid.Row="3" Grid.Column="1"
-                     Text="{Binding NewTags, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding NewIconPath, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Можно оставить пустым — тогда значок возьмётся из файла приложения"
                      Margin="6"/>
 
             <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
+                        Orientation="Horizontal"
+                        Margin="6">
+                <Button Content="Выбрать"
+                        Width="90"
+                        Margin="0,0,6,0"
+                        Command="{Binding ChooseIconCommand}"/>
+                <Button Content="Авто"
+                        Width="70"
+                        ToolTip="Убрать свою иконку и использовать автоматическую"
+                        Command="{Binding ClearIconCommand}"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Теги:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="4" Grid.Column="1"
+                     Text="{Binding NewTags, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="6"/>
+
+            <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
                         Margin="6">
@@ -551,12 +665,12 @@
                           IsChecked="{Binding NewRunOnAppStart}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Заметка:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="4" Grid.Column="1"
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Заметка:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="5" Grid.Column="1"
                      Text="{Binding NewNote, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
 
-            <StackPanel Grid.Row="4"
+            <StackPanel Grid.Row="5"
                         Grid.Column="3"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
@@ -755,6 +869,8 @@
                 <ColumnDefinition Width="150"/>
                 <ColumnDefinition Width="130"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0"
@@ -780,7 +896,24 @@
                        Foreground="{StaticResource TextSecondary}"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
-                       Margin="10,0,0,0"/>
+                       Margin="10,0,12,0"/>
+
+            <ToggleButton Grid.Column="4"
+                          Content="☰ Список"
+                          Height="34"
+                          MinWidth="88"
+                          Style="{StaticResource ViewModeToggleStyle}"
+                          IsChecked="{Binding IsListView, Mode=OneWay}"
+                          Command="{Binding ShowListViewCommand}"/>
+
+            <ToggleButton Grid.Column="5"
+                          Content="▦ Сетка"
+                          Height="34"
+                          MinWidth="82"
+                          Margin="6,0,0,0"
+                          Style="{StaticResource ViewModeToggleStyle}"
+                          IsChecked="{Binding IsGridView, Mode=OneWay}"
+                          Command="{Binding ShowGridViewCommand}"/>
         </Grid>
     </Grid>
 </Border>
@@ -788,7 +921,7 @@
                 <TextBlock Grid.Row="1"
                            Margin="2,0,0,8"
                            Foreground="{StaticResource TextSecondary}"
-                           Text="Выбери элемент в таблице — действия и детали будут справа."/>
+                           Text="Двойной клик открывает элемент, правая кнопка показывает меню."/>
                 
                 <Expander Grid.Row="2"
                           Header="Поиск Everything"
@@ -901,102 +1034,118 @@
     </Border>
 </Expander>
 
-                <DataGrid x:Name="MainItemsGrid"
-                          Grid.Row="3"
-                          ItemsSource="{Binding Items}"
-                          SelectedItem="{Binding SelectedItem}"
-                          PreviewMouseLeftButtonDown="MainItemsGrid_PreviewMouseLeftButtonDown"
-                          MouseMove="MainItemsGrid_MouseMove"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          IsReadOnly="True"
-                          MouseDoubleClick="MainItemsGrid_MouseDoubleClick"
-                          KeyDown="MainItemsGrid_KeyDown"
-                          GridLinesVisibility="Horizontal"
-                          HeadersVisibility="Column"
-                          SelectionMode="Single"
-                          RowHeight="32"
-                          FontSize="13">
-                    
-                    <DataGrid.ContextMenu>
-    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-        <MenuItem Header="Открыть"
-                  Command="{Binding OpenItemCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                <Grid Grid.Row="3">
+                    <DataGrid x:Name="MainItemsGrid"
+                              ItemsSource="{Binding Items}"
+                              SelectedItem="{Binding SelectedItem}"
+                              Visibility="{Binding IsListView, Converter={StaticResource BooleanToVisibilityConverter}}"
+                              ContextMenu="{StaticResource ManagedItemContextMenu}"
+                              PreviewMouseLeftButtonDown="MainItemsGrid_PreviewMouseLeftButtonDown"
+                              PreviewMouseRightButtonDown="MainItems_PreviewMouseRightButtonDown"
+                              MouseMove="MainItemsGrid_MouseMove"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              MouseDoubleClick="MainItemsGrid_MouseDoubleClick"
+                              KeyDown="MainItemsGrid_KeyDown"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              SelectionMode="Single"
+                              RowHeight="32"
+                              FontSize="13">
 
-        <MenuItem Header="Показать в проводнике"
-                  Command="{Binding OpenInExplorerCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="★"
+                                                    Binding="{Binding IsFavorite}"
+                                                    Width="40"/>
 
-        <MenuItem Header="Запустить"
-                  Command="{Binding RunItemCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                            <DataGridTextColumn Header="Статус"
+                                                Binding="{Binding StatusDisplay}"
+                                                Width="150"/>
 
-        <Separator/>
+                            <DataGridTextColumn Header="Тип"
+                                                Binding="{Binding TypeDisplay}"
+                                                Width="120"/>
 
-        <MenuItem Header="Копировать путь"
-                  Command="{Binding CopyPathCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                            <DataGridTextColumn Header="Название"
+                                                Binding="{Binding Title}"
+                                                Width="190"/>
 
-        <MenuItem Header="Редактировать"
-                  Command="{Binding EditItemCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                            <DataGridTextColumn Header="Путь"
+                                                Binding="{Binding Path}"
+                                                Width="*"/>
 
-        <Separator/>
+                            <DataGridTextColumn Header="Теги"
+                                                Binding="{Binding Tags}"
+                                                Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
-        <MenuItem Header="Найти переехавший файл"
-                  Command="{Binding FindMovedSelectedItemCommand}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                    <ListBox x:Name="MainItemsTiles"
+                             ItemsSource="{Binding Items}"
+                             SelectedItem="{Binding SelectedItem}"
+                             Visibility="{Binding IsGridView, Converter={StaticResource BooleanToVisibilityConverter}}"
+                             ContextMenu="{StaticResource ManagedItemContextMenu}"
+                             PreviewMouseLeftButtonDown="MainItemsGrid_PreviewMouseLeftButtonDown"
+                             PreviewMouseRightButtonDown="MainItems_PreviewMouseRightButtonDown"
+                             MouseMove="MainItemsGrid_MouseMove"
+                             MouseDoubleClick="MainItemsGrid_MouseDoubleClick"
+                             KeyDown="MainItemsGrid_KeyDown"
+                             SelectionMode="Single"
+                             Padding="8"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
 
-        <MenuItem Header="Взять выбранный путь из Everything"
-                  Command="{Binding UpdateSelectedItemPathFromEverythingCommand}"
-                  IsEnabled="{Binding CanUseEverythingPath}"/>
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel IsItemsHost="True"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
 
-        <Separator/>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem"
+                                   BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                <Setter Property="Width" Value="132"/>
+                                <Setter Property="Height" Value="126"/>
+                                <Setter Property="Margin" Value="5"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
 
-        <MenuItem Header="Убрать из текущего списка"
-                  Command="{Binding RemoveFromCurrentListCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="10,8"
+                                        ToolTip="{Binding Path}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="76"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
 
-        <MenuItem Header="Удалить полностью"
-                  Command="{Binding DeleteItemCommand}"
-                  CommandParameter="{Binding SelectedItem}"
-                  IsEnabled="{Binding HasSelectedItem}"/>
-    </ContextMenu>
-</DataGrid.ContextMenu>
+                                        <Image Grid.Row="0"
+                                               Width="68"
+                                               Height="68"
+                                               Source="{Binding IconSource}"
+                                               Stretch="Uniform"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
 
-                    <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="★"
-                                                Binding="{Binding IsFavorite}"
-                                                Width="40"/>
-
-                        <DataGridTextColumn Header="Статус"
-                                            Binding="{Binding StatusDisplay}"
-                                            Width="150"/>
-
-                        <DataGridTextColumn Header="Тип"
-                                            Binding="{Binding TypeDisplay}"
-                                            Width="120"/>
-
-                        <DataGridTextColumn Header="Название"
-                                            Binding="{Binding Title}"
-                                            Width="190"/>
-
-                        <DataGridTextColumn Header="Путь"
-                                            Binding="{Binding Path}"
-                                            Width="*"/>
-
-                        <DataGridTextColumn Header="Теги"
-                                            Binding="{Binding Tags}"
-                                            Width="150"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                                        <TextBlock Grid.Row="1"
+                                                   Text="{Binding Title}"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   FontWeight="SemiBold"
+                                                   LineHeight="16"
+                                                   MaxHeight="34"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
             </Grid>
 
             <Border Grid.Column="4"

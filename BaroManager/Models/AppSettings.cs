@@ -8,4 +8,5 @@ public class AppSettings
 
     public string Language { get; set; } = "ru";
     public string Theme { get; set; } = "dark";
+    public string ItemViewMode { get; set; } = "List";
 }

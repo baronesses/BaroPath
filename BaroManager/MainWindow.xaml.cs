@@ -17,6 +17,7 @@ using WpfDragEventArgs = System.Windows.DragEventArgs;
 using WpfDragDropEffects = System.Windows.DragDropEffects;
 using WpfKey = System.Windows.Input.Key;
 using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
+using WpfListBox = System.Windows.Controls.ListBox;
 
 namespace BaroManager;
 
@@ -128,20 +129,40 @@ public partial class MainWindow : System.Windows.Window
             return;
         }
 
-        var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
+        var container = FindManagedItemContainer((DependencyObject)e.OriginalSource);
 
-        if (row?.Item is not ManagedItem item)
+        if (container?.DataContext is not ManagedItem item)
             return;
 
-        DragDrop.DoDragDrop(row, item, WpfDragDropEffects.Copy | WpfDragDropEffects.Move);
+        DragDrop.DoDragDrop(container, item, WpfDragDropEffects.Copy | WpfDragDropEffects.Move);
     }
-    
-    
+
+    private void MainItems_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var container = FindManagedItemContainer((DependencyObject)e.OriginalSource);
+
+        if (container?.DataContext is not ManagedItem item)
+            return;
+
+        switch (sender)
+        {
+            case DataGrid dataGrid:
+                dataGrid.SelectedItem = item;
+                break;
+
+            case WpfListBox listBox:
+                listBox.SelectedItem = item;
+                break;
+        }
+
+        container.Focus();
+    }
+
     private void MainItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        var row = FindParent<DataGridRow>((DependencyObject)e.OriginalSource);
+        var container = FindManagedItemContainer((DependencyObject)e.OriginalSource);
 
-        if (row?.Item is not ManagedItem item)
+        if (container?.DataContext is not ManagedItem item)
             return;
 
         if (DataContext is not MainViewModel viewModel)
@@ -156,7 +177,14 @@ public partial class MainWindow : System.Windows.Window
         if (DataContext is not MainViewModel viewModel)
             return;
 
-        if (MainItemsGrid.SelectedItem is not ManagedItem item)
+        var item = sender switch
+        {
+            DataGrid dataGrid => dataGrid.SelectedItem as ManagedItem,
+            WpfListBox listBox => listBox.SelectedItem as ManagedItem,
+            _ => null
+        };
+
+        if (item is null)
             return;
 
         switch (e.Key)
@@ -182,6 +210,16 @@ public partial class MainWindow : System.Windows.Window
                 e.Handled = true;
                 break;
         }
+    }
+
+    private static FrameworkElement? FindManagedItemContainer(DependencyObject source)
+    {
+        var dataGridRow = FindParent<DataGridRow>(source);
+
+        if (dataGridRow is not null)
+            return dataGridRow;
+
+        return FindParent<ListBoxItem>(source);
     }
 
     private void CollectionListBox_DragOver(object sender, WpfDragEventArgs e)

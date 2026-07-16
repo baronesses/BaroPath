@@ -71,7 +71,8 @@ public static class AppSettingsService
             EverythingExePath = File.Exists(bundledEverything) ? bundledEverything : string.Empty,
             AutoStartEverything = true,
             Language = "ru",
-            Theme = "dark"
+            Theme = "dark",
+            ItemViewMode = "List"
         };
     }
 }
