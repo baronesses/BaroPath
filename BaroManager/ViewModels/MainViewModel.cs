@@ -49,6 +49,9 @@ public partial class MainViewModel : ObservableObject
         ? LocalizationService.Get("Form.NewItem")
         : LocalizationService.Get("Form.EditItem");
 
+    public string SelectedCollectionDisplayName =>
+        SelectedCollection?.DisplayName ?? LocalizationService.Get("Lists.AllItems");
+
     [ObservableProperty]
     private string searchText = string.Empty;
     
@@ -178,6 +181,7 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedCollectionChanged(ManagedCollection? value)
     {
         SelectedCollectionName = value?.Name ?? string.Empty;
+        OnPropertyChanged(nameof(SelectedCollectionDisplayName));
         LoadItems();
     }
 
@@ -200,6 +204,7 @@ public partial class MainViewModel : ObservableObject
 
         OnPropertyChanged(nameof(MainActionText));
         OnPropertyChanged(nameof(FormTitleText));
+        OnPropertyChanged(nameof(SelectedCollectionDisplayName));
 
         var settings = AppSettingsService.Load();
         settings.Language = language;

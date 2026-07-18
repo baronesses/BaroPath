@@ -896,7 +896,7 @@
                       IsChecked="{Binding ShowOnlyMissing}"/>
 
             <TextBlock Grid.Column="3"
-                       Text="{Binding SelectedCollection.DisplayName, TargetNullValue='Все элементы', FallbackValue='Все элементы'}"
+                       Text="{Binding SelectedCollectionDisplayName}"
                        Foreground="{StaticResource TextSecondary}"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
@@ -1021,17 +1021,26 @@
                       FontSize="12">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="{DynamicResource Common.Type}"
-                                        Binding="{Binding TypeDisplay}"
-                                        Width="110"/>
+                    <DataGridTextColumn Binding="{Binding TypeDisplay}"
+                                        Width="110">
+                        <DataGridTextColumn.Header>
+                            <TextBlock Text="{DynamicResource Common.Type}"/>
+                        </DataGridTextColumn.Header>
+                    </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="{DynamicResource Grid.Name}"
-                                        Binding="{Binding Name}"
-                                        Width="220"/>
+                    <DataGridTextColumn Binding="{Binding Name}"
+                                        Width="220">
+                        <DataGridTextColumn.Header>
+                            <TextBlock Text="{DynamicResource Grid.Name}"/>
+                        </DataGridTextColumn.Header>
+                    </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="{DynamicResource Common.Path}"
-                                        Binding="{Binding Path}"
-                                        Width="*"/>
+                    <DataGridTextColumn Binding="{Binding Path}"
+                                        Width="*">
+                        <DataGridTextColumn.Header>
+                            <TextBlock Text="{DynamicResource Common.Path}"/>
+                        </DataGridTextColumn.Header>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
@@ -1063,25 +1072,40 @@
                                                     Binding="{Binding IsFavorite}"
                                                     Width="40"/>
 
-                            <DataGridTextColumn Header="{DynamicResource Grid.Status}"
-                                                Binding="{Binding StatusDisplay}"
-                                                Width="150"/>
+                            <DataGridTextColumn Binding="{Binding StatusDisplay}"
+                                                Width="150">
+                                <DataGridTextColumn.Header>
+                                    <TextBlock Text="{DynamicResource Grid.Status}"/>
+                                </DataGridTextColumn.Header>
+                            </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="{DynamicResource Common.Type}"
-                                                Binding="{Binding TypeDisplay}"
-                                                Width="120"/>
+                            <DataGridTextColumn Binding="{Binding TypeDisplay}"
+                                                Width="120">
+                                <DataGridTextColumn.Header>
+                                    <TextBlock Text="{DynamicResource Common.Type}"/>
+                                </DataGridTextColumn.Header>
+                            </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="{DynamicResource Common.Name}"
-                                                Binding="{Binding Title}"
-                                                Width="190"/>
+                            <DataGridTextColumn Binding="{Binding Title}"
+                                                Width="190">
+                                <DataGridTextColumn.Header>
+                                    <TextBlock Text="{DynamicResource Common.Name}"/>
+                                </DataGridTextColumn.Header>
+                            </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="{DynamicResource Common.Path}"
-                                                Binding="{Binding Path}"
-                                                Width="*"/>
+                            <DataGridTextColumn Binding="{Binding Path}"
+                                                Width="*">
+                                <DataGridTextColumn.Header>
+                                    <TextBlock Text="{DynamicResource Common.Path}"/>
+                                </DataGridTextColumn.Header>
+                            </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="{DynamicResource Grid.Tags}"
-                                                Binding="{Binding Tags}"
-                                                Width="150"/>
+                            <DataGridTextColumn Binding="{Binding Tags}"
+                                                Width="150">
+                                <DataGridTextColumn.Header>
+                                    <TextBlock Text="{DynamicResource Grid.Tags}"/>
+                                </DataGridTextColumn.Header>
+                            </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
