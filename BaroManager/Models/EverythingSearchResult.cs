@@ -1,5 +1,7 @@
 ﻿using System.IO;
 
+using BaroManager.Services;
+
 namespace BaroManager.Models;
 
 public class EverythingSearchResult
@@ -38,11 +40,11 @@ public class EverythingSearchResult
 
     public string TypeDisplay => ItemType switch
     {
-        "Folder" => "📁 Folder",
-        "File" => "📄 File",
-        "App" => "🚀 App",
-        "Script" => "⚙ Script",
-        "Command" => "⌨ Command",
+        "Folder" => LocalizationService.Get("Type.Folder"),
+        "File" => LocalizationService.Get("Type.File"),
+        "App" => LocalizationService.Get("Type.App"),
+        "Script" => LocalizationService.Get("Type.Script"),
+        "Command" => LocalizationService.Get("Type.Command"),
         _ => $"❔ {ItemType}"
     };
 }

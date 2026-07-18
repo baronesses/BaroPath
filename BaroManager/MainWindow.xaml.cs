@@ -71,7 +71,7 @@ public partial class MainWindow : System.Windows.Window
 
         WpfMessageBox.Show(
             message,
-            "Startup items",
+            LocalizationService.Get("Title.StartupItems"),
             WpfMessageBoxButton.OK,
             WpfMessageBoxImage.Warning
         );
@@ -81,17 +81,17 @@ public partial class MainWindow : System.Windows.Window
     {
         var builder = new StringBuilder();
 
-        builder.AppendLine("Некоторые элементы автозапуска не были запущены.");
+        builder.AppendLine(LocalizationService.Get("Message.StartupProblems"));
         builder.AppendLine();
-        builder.AppendLine($"Всего: {result.Total}");
-        builder.AppendLine($"Запущено: {result.Started.Count}");
-        builder.AppendLine($"Пропущено: {result.Skipped.Count}");
-        builder.AppendLine($"Ошибок: {result.Failed.Count}");
+        builder.AppendLine(LocalizationService.Format("Message.Total", result.Total));
+        builder.AppendLine(LocalizationService.Format("Message.Started", result.Started.Count));
+        builder.AppendLine(LocalizationService.Format("Message.Skipped", result.Skipped.Count));
+        builder.AppendLine(LocalizationService.Format("Message.Errors", result.Failed.Count));
 
         if (result.Skipped.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("Пропущено:");
+            builder.AppendLine(LocalizationService.Get("Message.SkippedHeader"));
 
             foreach (var skipped in result.Skipped.Take(10))
                 builder.AppendLine($"- {skipped}");
@@ -100,7 +100,7 @@ public partial class MainWindow : System.Windows.Window
         if (result.Failed.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("Ошибки:");
+            builder.AppendLine(LocalizationService.Get("Message.ErrorsHeader"));
 
             foreach (var failed in result.Failed.Take(10))
                 builder.AppendLine($"- {failed}");
@@ -294,6 +294,9 @@ public partial class MainWindow : System.Windows.Window
     protected override void OnClosed(EventArgs e)
     {
         Loaded -= MainWindow_Loaded;
+
+        EmbeddedEverythingService.Stop(
+            EverythingSearchService.GetResolvedEverythingPath());
 
         _db?.Dispose();
 

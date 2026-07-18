@@ -53,31 +53,31 @@ public class ManagedItem
     [NotMapped]
     public string StatusText => PathStatus switch
     {
-        "OK" => "OK",
-        "Missing" => "Missing",
-        "WorkDirMissing" => "Work dir missing",
-        "Command" => "Command",
-        _ => "Unknown"
+        "OK" => LocalizationService.Get("Status.OK"),
+        "Missing" => LocalizationService.Get("Status.Missing"),
+        "WorkDirMissing" => LocalizationService.Get("Status.WorkDirMissing"),
+        "Command" => LocalizationService.Get("Status.Command"),
+        _ => LocalizationService.Get("Status.Unknown")
     };
 
     [NotMapped]
     public string StatusDisplay => PathStatus switch
     {
-        "OK" => "✅ OK",
-        "Missing" => "❌ Missing",
-        "WorkDirMissing" => "⚠ Work dir missing",
-        "Command" => "⌨ Command",
-        _ => "❔ Unknown"
+        "OK" => LocalizationService.Get("Status.OK"),
+        "Missing" => LocalizationService.Get("Status.Missing"),
+        "WorkDirMissing" => LocalizationService.Get("Status.WorkDirMissing"),
+        "Command" => LocalizationService.Get("Status.Command"),
+        _ => LocalizationService.Get("Status.Unknown")
     };
 
     [NotMapped]
     public string TypeDisplay => ItemType switch
     {
-        "Folder" => "📁 Folder",
-        "File" => "📄 File",
-        "App" => "🚀 App",
-        "Script" => "⚙ Script",
-        "Command" => "⌨ Command",
+        "Folder" => LocalizationService.Get("Type.Folder"),
+        "File" => LocalizationService.Get("Type.File"),
+        "App" => LocalizationService.Get("Type.App"),
+        "Script" => LocalizationService.Get("Type.Script"),
+        "Command" => LocalizationService.Get("Type.Command"),
         _ => $"❔ {ItemType}"
     };
 }

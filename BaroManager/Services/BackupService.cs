@@ -80,14 +80,14 @@ public static class BackupService
     public static ImportBackupResult Import(AppDbContext db, string filePath)
     {
         if (!File.Exists(filePath))
-            throw new FileNotFoundException("Backup-файл не найден.", filePath);
+            throw new FileNotFoundException(LocalizationService.Get("Message.BackupNotFound"), filePath);
 
         var json = File.ReadAllText(filePath, Encoding.UTF8);
 
         var document = JsonSerializer.Deserialize<BackupDocument>(json, JsonOptions);
 
         if (document is null)
-            throw new InvalidOperationException("Не удалось прочитать backup-файл.");
+            throw new InvalidOperationException(LocalizationService.Get("Message.BackupReadError"));
 
         var result = new ImportBackupResult();
 

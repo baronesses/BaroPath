@@ -64,7 +64,7 @@ public static class ItemLauncher
             return;
         }
 
-        throw new FileNotFoundException("Путь не найден.", item.Path);
+        throw new FileNotFoundException(LocalizationService.Get("Message.PathNotFound"), item.Path);
     }
 
     public static void Run(ManagedItem item)
@@ -128,6 +128,6 @@ public static class ItemLauncher
         if (File.Exists(path) || Directory.Exists(path))
             return;
 
-        throw new FileNotFoundException("Путь не найден.", path);
+        throw new FileNotFoundException(LocalizationService.Get("Message.PathNotFound"), path);
     }
 }

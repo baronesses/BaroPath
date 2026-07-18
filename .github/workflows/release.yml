@@ -1,0 +1,44 @@
+name: Build release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Download official Everything dependencies
+        shell: pwsh
+        run: ./scripts/Get-Everything.ps1
+
+      - name: Build clean BaroPath release
+        shell: pwsh
+        run: ./scripts/Publish-Release.ps1
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BaroPath-win-x64
+          path: release/BaroPath-v*-win-x64.zip
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release/BaroPath-v*-win-x64.zip

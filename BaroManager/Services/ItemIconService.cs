@@ -34,15 +34,10 @@ public static class ItemIconService
                 return associatedIcon;
         }
 
-        var bundledIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png");
+        var bundledIcon = GetOrLoad("bundled:AppIcon", LoadBundledIcon);
 
-        if (File.Exists(bundledIconPath))
-        {
-            var bundledIcon = GetOrLoad($"bundled:{bundledIconPath}", () => LoadBitmap(bundledIconPath));
-
-            if (bundledIcon is not null)
-                return bundledIcon;
-        }
+        if (bundledIcon is not null)
+            return bundledIcon;
 
         return FallbackIcon.Value;
     }
@@ -98,6 +93,24 @@ public static class ItemIconService
 
             source.Freeze();
             return source;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static ImageSource? LoadBundledIcon()
+    {
+        try
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri("pack://application:,,,/Assets/AppIcon.png", UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
         }
         catch
         {

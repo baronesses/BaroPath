@@ -24,13 +24,13 @@ public static class StartupItemRunner
             {
                 if (item.PathStatus == "Missing")
                 {
-                    result.Skipped.Add($"{item.Title} — путь отсутствует");
+                    result.Skipped.Add($"{item.Title} — {LocalizationService.Get("Message.MissingPathSuffix")}");
                     continue;
                 }
 
                 if (item.PathStatus == "WorkDirMissing")
                 {
-                    result.Skipped.Add($"{item.Title} — рабочая папка отсутствует");
+                    result.Skipped.Add($"{item.Title} — {LocalizationService.Get("Message.MissingWorkDirSuffix")}");
                     continue;
                 }
 

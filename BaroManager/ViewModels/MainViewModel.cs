@@ -35,34 +35,19 @@ public partial class MainViewModel : ObservableObject
     
     public ObservableCollection<EverythingSearchResult> EverythingResults { get; } = new();
 
-    public string[] ItemTypes { get; } =
-    [
-        "Folder",
-        "File",
-        "App",
-        "Script",
-        "Command"
-    ];
-    
-    public string[] FilterModes { get; } =
-    [
-        "All",
-        "Favorites",
-        "Missing",
-        "Commands",
-        "Startup",
-        "Folders",
-        "Scripts",
-        "Apps"
-    ];
+    public ObservableCollection<LocalizedOption> ItemTypes { get; } = new();
+
+    public ObservableCollection<LocalizedOption> FilterModes { get; } = new();
+
+    public string[] LanguageOptions { get; } = ["Русский", "English"];
 
     public string MainActionText => EditingItemId is null
-        ? "Добавить"
-        : "Сохранить";
+        ? LocalizationService.Get("Action.Add")
+        : LocalizationService.Get("Action.Save");
 
     public string FormTitleText => EditingItemId is null
-        ? "Новый элемент"
-        : "Редактирование элемента";
+        ? LocalizationService.Get("Form.NewItem")
+        : LocalizationService.Get("Form.EditItem");
 
     [ObservableProperty]
     private string searchText = string.Empty;
@@ -119,6 +104,9 @@ public partial class MainViewModel : ObservableObject
     private bool settingsAutoStartEverything = true;
 
     [ObservableProperty]
+    private string selectedLanguage = "Русский";
+
+    [ObservableProperty]
     private bool isGridView;
 
     public bool IsListView => !IsGridView;
@@ -154,6 +142,7 @@ public partial class MainViewModel : ObservableObject
         _db = db;
         
         LoadSettingsToFields();
+        ReloadLocalizedOptions();
 
         LoadCollections();
         LoadItems();
@@ -203,6 +192,77 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(IsListView));
     }
 
+    partial void OnSelectedLanguageChanged(string value)
+    {
+        var language = value == "English" ? "en" : "ru";
+        LocalizationService.ApplyLanguage(language);
+        ReloadLocalizedOptions();
+
+        OnPropertyChanged(nameof(MainActionText));
+        OnPropertyChanged(nameof(FormTitleText));
+
+        var settings = AppSettingsService.Load();
+        settings.Language = language;
+        AppSettingsService.Save(settings);
+
+        LoadItems();
+        RefreshEverythingResults();
+    }
+
+    private void ReloadLocalizedOptions()
+    {
+        var currentItemType = string.IsNullOrWhiteSpace(SelectedItemType)
+            ? "Folder"
+            : SelectedItemType;
+
+        var currentFilterMode = string.IsNullOrWhiteSpace(SelectedFilterMode)
+            ? "All"
+            : SelectedFilterMode;
+
+        ReplaceOptions(ItemTypes,
+        [
+            new("Folder", LocalizationService.Get("Type.Folder")),
+            new("File", LocalizationService.Get("Type.File")),
+            new("App", LocalizationService.Get("Type.App")),
+            new("Script", LocalizationService.Get("Type.Script")),
+            new("Command", LocalizationService.Get("Type.Command"))
+        ]);
+
+        ReplaceOptions(FilterModes,
+        [
+            new("All", LocalizationService.Get("Filter.All")),
+            new("Favorites", LocalizationService.Get("Filter.Favorites")),
+            new("Missing", LocalizationService.Get("Filter.Missing")),
+            new("Commands", LocalizationService.Get("Filter.Commands")),
+            new("Startup", LocalizationService.Get("Filter.Startup")),
+            new("Folders", LocalizationService.Get("Filter.Folders")),
+            new("Scripts", LocalizationService.Get("Filter.Scripts")),
+            new("Apps", LocalizationService.Get("Filter.Apps"))
+        ]);
+
+        SelectedItemType = currentItemType;
+        SelectedFilterMode = currentFilterMode;
+    }
+
+    private static void ReplaceOptions(
+        ObservableCollection<LocalizedOption> target,
+        IEnumerable<LocalizedOption> options)
+    {
+        target.Clear();
+
+        foreach (var option in options)
+            target.Add(option);
+    }
+
+    private void RefreshEverythingResults()
+    {
+        var results = EverythingResults.ToList();
+        EverythingResults.Clear();
+
+        foreach (var result in results)
+            EverythingResults.Add(result);
+    }
+
     [RelayCommand]
     private void LoadCollections()
     {
@@ -250,7 +310,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(NewCollectionName))
         {
-            WpfMessageBox.Show("Название списка пустое.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ListNameEmpty"), "BaroPath");
             return;
         }
 
@@ -258,7 +318,7 @@ public partial class MainViewModel : ObservableObject
 
         if (_db.ManagedCollections.Any(x => x.Name == name))
         {
-            WpfMessageBox.Show("Такой список уже есть.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ListExists"), "BaroPath");
             return;
         }
 
@@ -291,6 +351,9 @@ public partial class MainViewModel : ObservableObject
     SettingsEverythingPath = settings.EverythingExePath;
     SettingsAutoStartEverything = settings.AutoStartEverything;
     IsGridView = string.Equals(settings.ItemViewMode, "Grid", StringComparison.OrdinalIgnoreCase);
+    SelectedLanguage = LocalizationService.NormalizeLanguage(settings.Language) == "en"
+        ? "English"
+        : "Русский";
 }
 
 [RelayCommand]
@@ -301,7 +364,7 @@ private void SaveSettings()
         EverythingEsPath = SettingsEsPath?.Trim() ?? string.Empty,
         EverythingExePath = SettingsEverythingPath?.Trim() ?? string.Empty,
         AutoStartEverything = SettingsAutoStartEverything,
-        Language = "ru",
+        Language = SelectedLanguage == "English" ? "en" : "ru",
         Theme = "dark",
         ItemViewMode = IsGridView ? "Grid" : "List"
     };
@@ -309,8 +372,8 @@ private void SaveSettings()
     AppSettingsService.Save(settings);
 
     WpfMessageBox.Show(
-        "Настройки сохранены.",
-        "Настройки"
+        LocalizationService.Get("Message.SettingsSaved"),
+        LocalizationService.Get("Title.Settings")
     );
 }
 
@@ -346,7 +409,7 @@ private void ChooseEsPath()
 {
     var dialog = new OpenFileDialog
     {
-        Title = "Выбери es.exe",
+        Title = LocalizationService.Get("Message.ChooseEs"),
         Filter = "es.exe|es.exe|Executable files (*.exe)|*.exe|All files (*.*)|*.*",
         CheckFileExists = true
     };
@@ -362,7 +425,7 @@ private void ChooseEverythingPath()
 {
     var dialog = new OpenFileDialog
     {
-        Title = "Выбери Everything.exe",
+        Title = LocalizationService.Get("Message.ChooseEverything"),
         Filter = "Everything.exe|Everything.exe|Executable files (*.exe)|*.exe|All files (*.*)|*.*",
         CheckFileExists = true
     };
@@ -386,10 +449,7 @@ private void TestEverythingSettings()
         var results = EverythingSearchService.Search("*", 1);
 
         WpfMessageBox.Show(
-            "Everything работает.\n\n" +
-            $"es.exe:\n{esPath}\n\n" +
-            $"Everything.exe:\n{everythingPath}\n\n" +
-            $"Тестовых результатов: {results.Count}",
+            LocalizationService.Format("Message.EverythingWorks", esPath, everythingPath, results.Count),
             "Everything test"
         );
     }
@@ -451,7 +511,7 @@ private void ExportBackup()
 {
     var dialog = new SaveFileDialog
     {
-        Title = "Сохранить backup BaroManager",
+        Title = LocalizationService.Get("Message.ChooseBackupSave"),
         Filter = "BaroManager backup (*.json)|*.json|JSON (*.json)|*.json|All files (*.*)|*.*",
         FileName = $"baromanager-backup-{DateTime.Now:yyyyMMdd-HHmmss}.json"
     };
@@ -464,8 +524,8 @@ private void ExportBackup()
         BackupService.Export(_db, dialog.FileName);
 
         WpfMessageBox.Show(
-            $"Backup сохранён:\n\n{dialog.FileName}",
-            "Backup"
+            LocalizationService.Format("Message.BackupSaved", dialog.FileName),
+            LocalizationService.Get("Title.Backup")
         );
     }
     catch (Exception ex)
@@ -482,7 +542,7 @@ private void ImportBackup()
 {
     var dialog = new OpenFileDialog
     {
-        Title = "Выбери backup BaroManager",
+        Title = LocalizationService.Get("Message.ChooseBackupOpen"),
         Filter = "BaroManager backup (*.json)|*.json|JSON (*.json)|*.json|All files (*.*)|*.*",
         CheckFileExists = true
     };
@@ -491,11 +551,8 @@ private void ImportBackup()
         return;
 
     var answer = WpfMessageBox.Show(
-        "Импорт объединит данные с текущей базой.\n\n" +
-        "Существующие пути будут обновлены, новые — добавлены.\n" +
-        "Ничего автоматически удаляться не будет.\n\n" +
-        "Продолжить?",
-        "Import backup",
+        LocalizationService.Get("Message.ImportConfirm"),
+        LocalizationService.Get("Title.ImportBackup"),
         WpfMessageBoxButton.YesNo,
         WpfMessageBoxImage.Question
     );
@@ -511,12 +568,13 @@ private void ImportBackup()
         LoadItems();
 
         WpfMessageBox.Show(
-            "Импорт завершён.\n\n" +
-            $"Списков создано: {result.CollectionsCreated}\n" +
-            $"Элементов создано: {result.ItemsCreated}\n" +
-            $"Элементов обновлено: {result.ItemsUpdated}\n" +
-            $"Связей со списками создано: {result.LinksCreated}",
-            "Import backup"
+            LocalizationService.Format(
+                "Message.ImportComplete",
+                result.CollectionsCreated,
+                result.ItemsCreated,
+                result.ItemsUpdated,
+                result.LinksCreated),
+            LocalizationService.Get("Title.ImportBackup")
         );
     }
     catch (Exception ex)
@@ -555,13 +613,13 @@ private void OpenDatabaseFolder()
     {
         if (SelectedCollection is null)
         {
-            WpfMessageBox.Show("Сначала выбери список слева.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.SelectListLeft"), "BaroPath");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(SelectedCollectionName))
         {
-            WpfMessageBox.Show("Название списка пустое.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ListNameEmpty"), "BaroPath");
             return;
         }
 
@@ -574,7 +632,7 @@ private void OpenDatabaseFolder()
 
         if (duplicate)
         {
-            WpfMessageBox.Show("Список с таким названием уже есть.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ListDuplicate"), "BaroPath");
             return;
         }
 
@@ -582,7 +640,7 @@ private void OpenDatabaseFolder()
 
         if (entity is null)
         {
-            WpfMessageBox.Show("Список не найден в базе.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ListNotFound"), "BaroPath");
             LoadCollections();
             return;
         }
@@ -602,13 +660,13 @@ private void OpenDatabaseFolder()
     {
         if (SelectedCollection is null)
         {
-            WpfMessageBox.Show("Сначала выбери список слева.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.SelectListLeft"), "BaroPath");
             return;
         }
 
         var result = WpfMessageBox.Show(
-            $"Удалить список?\n\n{SelectedCollection.Name}\n\nЭлементы из менеджера НЕ удалятся. Удалится только сам список и его привязки.",
-            "Удаление списка",
+            LocalizationService.Format("Message.DeleteListConfirm", SelectedCollection.Name),
+            LocalizationService.Get("Message.DeleteListTitle"),
             WpfMessageBoxButton.YesNo,
             WpfMessageBoxImage.Question
         );
@@ -622,7 +680,7 @@ private void OpenDatabaseFolder()
 
         if (entity is null)
         {
-            WpfMessageBox.Show("Список уже не найден в базе.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ListAlreadyGone"), "BaroPath");
             LoadCollections();
             LoadItems();
             return;
@@ -693,8 +751,8 @@ private void OpenDatabaseFolder()
         LoadItems();
 
         WpfMessageBox.Show(
-            $"Проверка завершена.\n\nOK: {ok}\nMissing: {missing}\nWork dir missing: {workDirMissing}\nCommand: {commands}",
-            "Check paths"
+            LocalizationService.Format("Message.CheckComplete", ok, missing, workDirMissing, commands),
+            LocalizationService.Get("Title.CheckPaths")
         );
     }
 
@@ -785,7 +843,7 @@ private void OpenDatabaseFolder()
 
         if (string.IsNullOrWhiteSpace(NewPath))
         {
-            WpfMessageBox.Show("Путь пустой. Ну камон.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.PathEmpty"), "BaroPath");
             return;
         }
 
@@ -796,8 +854,8 @@ private void OpenDatabaseFolder()
             !Directory.Exists(cleanPath))
         {
             var result = WpfMessageBox.Show(
-                "Такой путь сейчас не существует. Всё равно сохранить?",
-                "Путь не найден",
+                LocalizationService.Get("Message.PathMissingConfirm"),
+                LocalizationService.Get("Message.PathMissingTitle"),
                 WpfMessageBoxButton.YesNo,
                 WpfMessageBoxImage.Warning
             );
@@ -817,8 +875,8 @@ private void OpenDatabaseFolder()
                 if (linked)
                 {
                     WpfMessageBox.Show(
-                        "Этот путь уже был сохранён, поэтому я просто добавил его в выбранный список.",
-                        "BaroManager"
+                        LocalizationService.Get("Message.ExistingAddedToList"),
+                        "BaroPath"
                     );
 
                     ClearForm();
@@ -828,7 +886,7 @@ private void OpenDatabaseFolder()
                 }
             }
 
-            WpfMessageBox.Show("Такой путь уже сохранён.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.PathDuplicate"), "BaroPath");
             return;
         }
 
@@ -877,7 +935,7 @@ private void OpenDatabaseFolder()
 
         if (string.IsNullOrWhiteSpace(NewPath))
         {
-            WpfMessageBox.Show("Путь пустой. Ну камон.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.PathEmpty"), "BaroPath");
             return;
         }
 
@@ -888,8 +946,8 @@ private void OpenDatabaseFolder()
             !Directory.Exists(cleanPath))
         {
             var result = WpfMessageBox.Show(
-                "Такой путь сейчас не существует. Всё равно сохранить?",
-                "Путь не найден",
+                LocalizationService.Get("Message.PathMissingConfirm"),
+                LocalizationService.Get("Message.PathMissingTitle"),
                 WpfMessageBoxButton.YesNo,
                 WpfMessageBoxImage.Warning
             );
@@ -902,7 +960,7 @@ private void OpenDatabaseFolder()
 
         if (entity is null)
         {
-            WpfMessageBox.Show("Элемент не найден в базе.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ItemNotFound"), "BaroPath");
             ClearForm();
             LoadItems();
             return;
@@ -916,8 +974,8 @@ private void OpenDatabaseFolder()
         if (duplicate is not null)
         {
             WpfMessageBox.Show(
-                "Другой элемент уже использует такой путь. Дубль не сохраняю.",
-                "BaroManager"
+                LocalizationService.Get("Message.OtherItemDuplicate"),
+                "BaroPath"
             );
             return;
         }
@@ -962,7 +1020,7 @@ private void OpenDatabaseFolder()
 
         if (entity is null)
         {
-            WpfMessageBox.Show("Элемент не найден в базе.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.ItemNotFound"), "BaroPath");
             LoadItems();
             return;
         }
@@ -995,7 +1053,7 @@ private void OpenDatabaseFolder()
 
         if (SelectedTargetCollection is null)
         {
-            WpfMessageBox.Show("Сначала выбери целевой список сверху.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.SelectTargetList"), "BaroPath");
             return;
         }
 
@@ -1004,15 +1062,15 @@ private void OpenDatabaseFolder()
         if (!linked)
         {
             WpfMessageBox.Show(
-                $"Элемент уже есть в списке \"{SelectedTargetCollection.Name}\".",
-                "BaroManager"
+                LocalizationService.Format("Message.AlreadyInList", SelectedTargetCollection.Name),
+                "BaroPath"
             );
             return;
         }
 
         WpfMessageBox.Show(
-            $"Добавлено в список \"{SelectedTargetCollection.Name}\".",
-            "BaroManager"
+            LocalizationService.Format("Message.AddedToList", SelectedTargetCollection.Name),
+            "BaroPath"
         );
 
         LoadCollections();
@@ -1028,21 +1086,21 @@ private void OpenDatabaseFolder()
         if (SelectedCollection is null)
         {
             WpfMessageBox.Show(
-                "Для переноса сначала выбери исходный список слева. Из режима 'Все элементы' переносить опасно и непонятно откуда.",
-                "BaroManager"
+                LocalizationService.Get("Message.MoveNeedsSource"),
+                "BaroPath"
             );
             return;
         }
 
         if (SelectedTargetCollection is null)
         {
-            WpfMessageBox.Show("Сначала выбери целевой список сверху.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.SelectTargetList"), "BaroPath");
             return;
         }
 
         if (SelectedCollection.Id == SelectedTargetCollection.Id)
         {
-            WpfMessageBox.Show("Исходный и целевой список одинаковые. Оно уже там, капитан.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.SameList"), "BaroPath");
             return;
         }
 
@@ -1072,8 +1130,8 @@ private void OpenDatabaseFolder()
         if (SelectedCollection is null)
         {
             WpfMessageBox.Show(
-                "Сначала выбери конкретный список слева. Из режима 'Все элементы' удалять из списка нечего.",
-                "BaroManager"
+                LocalizationService.Get("Message.RemoveNeedsList"),
+                "BaroPath"
             );
             return;
         }
@@ -1085,7 +1143,7 @@ private void OpenDatabaseFolder()
 
         if (link is null)
         {
-            WpfMessageBox.Show("Этого элемента и так нет в выбранном списке.", "BaroManager");
+            WpfMessageBox.Show(LocalizationService.Get("Message.NotInList"), "BaroPath");
             LoadItems();
             return;
         }
@@ -1102,7 +1160,7 @@ private void OpenDatabaseFolder()
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Выбери файл / программу / скрипт",
+            Title = LocalizationService.Get("Message.ChooseFile"),
             CheckFileExists = true,
             Filter = "All files (*.*)|*.*"
         };
@@ -1133,7 +1191,7 @@ private void OpenDatabaseFolder()
         
         using var dialog = new WinForms.FolderBrowserDialog
         {
-            Description = "Выбери папку",
+            Description = LocalizationService.Get("Message.ChooseFolder"),
             UseDescriptionForTitle = true
         };
 
@@ -1157,7 +1215,7 @@ private void OpenDatabaseFolder()
 
         var dialog = new OpenFileDialog
         {
-            Title = "Выбери свою иконку",
+            Title = LocalizationService.Get("Message.ChooseIcon"),
             Filter = "Images (*.ico;*.png;*.jpg;*.jpeg;*.bmp;*.gif)|*.ico;*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files (*.*)|*.*",
             CheckFileExists = true
         };
@@ -1185,7 +1243,7 @@ private void OpenDatabaseFolder()
         }
         catch (Exception ex)
         {
-            WpfMessageBox.Show(ex.Message, "Ошибка открытия");
+            WpfMessageBox.Show(ex.Message, LocalizationService.Get("Message.OpenError"));
         }
     }
 
@@ -1202,7 +1260,7 @@ private void OpenDatabaseFolder()
         }
         catch (Exception ex)
         {
-            WpfMessageBox.Show(ex.Message, "Ошибка Explorer");
+            WpfMessageBox.Show(ex.Message, LocalizationService.Get("Message.ExplorerError"));
         }
     }
 
@@ -1219,7 +1277,7 @@ private void OpenDatabaseFolder()
         }
         catch (Exception ex)
         {
-            WpfMessageBox.Show(ex.Message, "Ошибка запуска");
+            WpfMessageBox.Show(ex.Message, LocalizationService.Get("Message.RunError"));
         }
     }
 
@@ -1239,8 +1297,8 @@ private void OpenDatabaseFolder()
             return;
 
         var result = WpfMessageBox.Show(
-            $"Удалить элемент ВЕЗДЕ из менеджера?\n\n{item.Title}\n\nФайл на диске не удаляется, только запись из BaroManager.",
-            "Глобальное удаление",
+            LocalizationService.Format("Message.DeleteItemConfirm", item.Title),
+            LocalizationService.Get("Message.DeleteItemTitle"),
             WpfMessageBoxButton.YesNo,
             WpfMessageBoxImage.Question
         );
@@ -1270,7 +1328,9 @@ private void SearchEverything()
 
     if (string.IsNullOrWhiteSpace(EverythingQuery))
     {
-        WpfMessageBox.Show("Введите запрос для Everything.", "Everything search");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.EnterEverythingQuery"),
+            LocalizationService.Get("Title.EverythingSearch"));
         return;
     }
 
@@ -1282,7 +1342,9 @@ private void SearchEverything()
             EverythingResults.Add(result);
 
         if (EverythingResults.Count == 0)
-            WpfMessageBox.Show("Ничего не найдено.", "Everything search");
+            WpfMessageBox.Show(
+                LocalizationService.Get("Message.NothingFound"),
+                LocalizationService.Get("Title.EverythingSearch"));
     }
     catch (Exception ex)
     {
@@ -1295,7 +1357,9 @@ private void FindMovedSelectedItem()
 {
     if (SelectedItem is null)
     {
-        WpfMessageBox.Show("Сначала выбери элемент, который надо найти.", "Recovery");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.SelectRecoveryItem"),
+            LocalizationService.Get("Title.Recovery"));
         return;
     }
 
@@ -1304,7 +1368,9 @@ private void FindMovedSelectedItem()
 
     if (string.IsNullOrWhiteSpace(fileName))
     {
-        WpfMessageBox.Show("Не удалось вытащить имя файла/папки из старого пути.", "Recovery");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.OldNameMissing"),
+            LocalizationService.Get("Title.Recovery"));
         return;
     }
 
@@ -1327,15 +1393,15 @@ private void FindMovedSelectedItem()
         if (EverythingResults.Count == 0)
         {
             WpfMessageBox.Show(
-                $"По имени \"{fileName}\" ничего не найдено.",
-                "Recovery"
+                LocalizationService.Format("Message.RecoveryNothing", fileName),
+                LocalizationService.Get("Title.Recovery")
             );
             return;
         }
 
         WpfMessageBox.Show(
-            $"Найдено кандидатов: {EverythingResults.Count}\n\nВыбери подходящий результат в Everything search и нажми Use ES path.",
-            "Recovery"
+            LocalizationService.Format("Message.RecoveryCandidates", EverythingResults.Count),
+            LocalizationService.Get("Title.Recovery")
         );
     }
     catch (Exception ex)
@@ -1349,13 +1415,17 @@ private void UpdateSelectedItemPathFromEverything()
 {
     if (SelectedItem is null)
     {
-        WpfMessageBox.Show("Сначала выбери элемент BaroManager.", "Recovery");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.SelectManagedItem"),
+            LocalizationService.Get("Title.Recovery"));
         return;
     }
 
     if (SelectedEverythingResult is null)
     {
-        WpfMessageBox.Show("Сначала выбери результат Everything.", "Recovery");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.SelectEverythingResult"),
+            LocalizationService.Get("Title.Recovery"));
         return;
     }
 
@@ -1363,7 +1433,9 @@ private void UpdateSelectedItemPathFromEverything()
 
     if (!File.Exists(newPath) && !Directory.Exists(newPath))
     {
-        WpfMessageBox.Show("Выбранный путь уже не существует.", "Recovery");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.SelectedPathMissing"),
+            LocalizationService.Get("Title.Recovery"));
         return;
     }
 
@@ -1371,7 +1443,9 @@ private void UpdateSelectedItemPathFromEverything()
 
     if (entity is null)
     {
-        WpfMessageBox.Show("Элемент не найден в базе.", "Recovery");
+        WpfMessageBox.Show(
+            LocalizationService.Get("Message.ItemNotFound"),
+            LocalizationService.Get("Title.Recovery"));
         LoadItems();
         return;
     }
@@ -1384,8 +1458,8 @@ private void UpdateSelectedItemPathFromEverything()
     if (duplicate is not null)
     {
         WpfMessageBox.Show(
-            $"Такой путь уже есть у другого элемента:\n\n{duplicate.Title}",
-            "Recovery"
+            LocalizationService.Format("Message.DuplicateForOtherItem", duplicate.Title),
+            LocalizationService.Get("Title.Recovery")
         );
         return;
     }
@@ -1412,8 +1486,8 @@ private void UpdateSelectedItemPathFromEverything()
     SelectedItem = Items.FirstOrDefault(x => x.Id == updatedId);
 
     WpfMessageBox.Show(
-        "Путь обновлён из Everything.",
-        "Recovery"
+        LocalizationService.Get("Message.PathUpdated"),
+        LocalizationService.Get("Title.Recovery")
     );
 }
 
@@ -1456,13 +1530,13 @@ private void AddEverythingResult(EverythingSearchResult? result)
 {
     if (result is null)
     {
-        WpfMessageBox.Show("Сначала выбери результат Everything.", "BaroManager");
+        WpfMessageBox.Show(LocalizationService.Get("Message.SelectEverythingResult"), "BaroPath");
         return;
     }
 
     if (!File.Exists(result.Path) && !Directory.Exists(result.Path))
     {
-        WpfMessageBox.Show("Этот путь уже не существует.", "BaroManager");
+        WpfMessageBox.Show(LocalizationService.Get("Message.PathDoesNotExist"), "BaroPath");
         return;
     }
 
@@ -1479,8 +1553,8 @@ private void AddEverythingResult(EverythingSearchResult? result)
             if (linked)
             {
                 WpfMessageBox.Show(
-                    "Этот путь уже был в менеджере, поэтому я просто добавил его в выбранный список.",
-                    "BaroManager"
+                    LocalizationService.Get("Message.ExistingEverythingAdded"),
+                    "BaroPath"
                 );
 
                 LoadCollections();
@@ -1489,7 +1563,7 @@ private void AddEverythingResult(EverythingSearchResult? result)
             }
         }
 
-        WpfMessageBox.Show("Такой путь уже есть в BaroManager.", "BaroManager");
+        WpfMessageBox.Show(LocalizationService.Get("Message.AlreadyInManager"), "BaroPath");
         return;
     }
 
@@ -1524,7 +1598,9 @@ private void AddEverythingResult(EverythingSearchResult? result)
     LoadCollections();
     LoadItems();
 
-    WpfMessageBox.Show("Добавлено в BaroManager.", "Everything search");
+    WpfMessageBox.Show(
+        LocalizationService.Get("Message.AddedToManager"),
+        LocalizationService.Get("Title.EverythingSearch"));
 }
 
 [RelayCommand]
@@ -1547,7 +1623,7 @@ private void OpenEverythingResult(EverythingSearchResult? result)
     }
     catch (Exception ex)
     {
-        WpfMessageBox.Show(ex.Message, "Ошибка открытия");
+        WpfMessageBox.Show(ex.Message, LocalizationService.Get("Message.OpenError"));
     }
 }
 
@@ -1571,7 +1647,7 @@ private void OpenEverythingResultInExplorer(EverythingSearchResult? result)
     }
     catch (Exception ex)
     {
-        WpfMessageBox.Show(ex.Message, "Ошибка Explorer");
+        WpfMessageBox.Show(ex.Message, LocalizationService.Get("Message.ExplorerError"));
     }
 }
 
@@ -1633,8 +1709,7 @@ public void RemoveExistingItemFromCurrentCollection(ManagedItem? item)
     if (SelectedCollection is null)
     {
         WpfMessageBox.Show(
-            "Сначала выбери конкретный список слева.\n\n" +
-            "Из режима «Все элементы» вытаскивать нечего.",
+            LocalizationService.Get("Message.DragAllItems"),
             "Drag & drop"
         );
 

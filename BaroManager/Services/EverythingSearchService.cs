@@ -20,11 +20,7 @@ public static class EverythingSearchService
 
         if (string.IsNullOrWhiteSpace(esPath))
         {
-            throw new FileNotFoundException(
-                "Не найден es.exe.\n\n" +
-                "Укажи путь в настройках или положи файл сюда:\n" +
-                "tools\\everything\\es.exe"
-            );
+            throw new FileNotFoundException(LocalizationService.Get("Message.EsMissing"));
         }
 
         var result = RunEs(esPath, query, maxResults);
@@ -35,22 +31,23 @@ public static class EverythingSearchService
 
             if (started)
             {
-                Thread.Sleep(1800);
-                result = RunEs(esPath, query, maxResults);
+                for (var attempt = 0; attempt < 40 && result.ExitCode == 8; attempt++)
+                {
+                    Thread.Sleep(250);
+                    result = RunEs(esPath, query, maxResults);
+                }
             }
         }
 
         if (result.ExitCode != 0 && result.ExitCode != 1)
         {
             var error = string.IsNullOrWhiteSpace(result.Stderr)
-                ? $"es.exe завершился с кодом {result.ExitCode}."
+                ? LocalizationService.Format("Message.EsExitCode", result.ExitCode)
                 : result.Stderr.Trim();
 
             if (result.ExitCode == 8)
             {
-                error =
-                    "Everything не запущен или es.exe не может подключиться к Everything IPC.\n\n" +
-                    "Проверь настройки Everything или включи автозапуск Everything в настройках BaroManager.";
+                error = LocalizationService.Get("Message.EverythingUnavailable");
             }
 
             throw new InvalidOperationException(error);
@@ -98,7 +95,7 @@ public static class EverythingSearchService
         using var process = Process.Start(psi);
 
         if (process is null)
-            throw new InvalidOperationException("Не удалось запустить es.exe.");
+            throw new InvalidOperationException(LocalizationService.Get("Message.EsStartFailed"));
 
         var stdout = process.StandardOutput.ReadToEnd();
         var stderr = process.StandardError.ReadToEnd();
@@ -114,9 +111,7 @@ public static class EverythingSearchService
                 // ignored
             }
 
-            throw new TimeoutException(
-                "Everything search слишком долго отвечает. Возможно, Everything индексирует диски или завис."
-            );
+            throw new TimeoutException(LocalizationService.Get("Message.EverythingTimeout"));
         }
 
         return new EsRunResult(process.ExitCode, stdout, stderr);
@@ -126,10 +121,10 @@ public static class EverythingSearchService
     {
         var candidates = new[]
         {
-            settings.EverythingEsPath,
             Path.Combine(AppSettingsService.ToolsEverythingDirectory, "es.exe"),
             Path.Combine(AppContext.BaseDirectory, "everything", "es.exe"),
             Path.Combine(AppContext.BaseDirectory, "es.exe"),
+            settings.EverythingEsPath,
 
             // dev fallback
             @"E:\ES\es.exe"
@@ -151,10 +146,10 @@ public static class EverythingSearchService
 
         var candidates = new[]
         {
-            settings.EverythingExePath,
             Path.Combine(AppSettingsService.ToolsEverythingDirectory, "Everything.exe"),
             Path.Combine(AppContext.BaseDirectory, "everything", "Everything.exe"),
             Path.Combine(AppContext.BaseDirectory, "Everything.exe"),
+            settings.EverythingExePath,
 
             Path.Combine(programFiles, "Everything", "Everything.exe"),
             Path.Combine(programFilesX86, "Everything", "Everything.exe")
@@ -178,14 +173,7 @@ public static class EverythingSearchService
 
         try
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = everythingPath,
-                UseShellExecute = true,
-                WindowStyle = ProcessWindowStyle.Minimized
-            });
-
-            return true;
+            return EmbeddedEverythingService.Start(everythingPath);
         }
         catch
         {

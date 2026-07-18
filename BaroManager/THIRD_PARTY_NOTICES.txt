@@ -1,6 +1,6 @@
-﻿Third-party notices for BaroManager
+﻿Third-party notices for BaroPath
 
-This application may bundle or integrate with the following third-party tools:
+This application bundles or integrates with the following third-party tools:
 
 1. Everything
    Website: voidtools.com
@@ -10,8 +10,7 @@ This application may bundle or integrate with the following third-party tools:
 
    Everything and ES are developed by voidtools.
 
-   If Everything/ES are distributed with BaroManager, the original voidtools
-   license file must be included alongside the bundled binaries, for example:
+   The original voidtools license file is included alongside the bundled binaries:
 
    tools/everything/License.txt
 
@@ -23,4 +22,4 @@ This application may bundle or integrate with the following third-party tools:
    BaroManager is built on Microsoft .NET technologies and NuGet packages.
    Their licenses are distributed by their respective owners.
 
-BaroManager itself is licensed under the license in LICENSE.txt.
+BaroPath itself is licensed under the license in LICENSE.txt.

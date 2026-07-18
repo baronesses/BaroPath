@@ -31,51 +31,51 @@
         <ContextMenu x:Key="ManagedItemContextMenu"
                      x:Shared="False"
                      DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-            <MenuItem Header="Открыть"
+            <MenuItem Header="{DynamicResource Common.Open}"
                       Command="{Binding OpenItemCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
-            <MenuItem Header="Показать в проводнике"
+            <MenuItem Header="{DynamicResource Context.ShowInExplorer}"
                       Command="{Binding OpenInExplorerCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
-            <MenuItem Header="Запустить"
+            <MenuItem Header="{DynamicResource Common.Run}"
                       Command="{Binding RunItemCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
             <Separator/>
 
-            <MenuItem Header="Копировать путь"
+            <MenuItem Header="{DynamicResource Context.CopyPath}"
                       Command="{Binding CopyPathCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
-            <MenuItem Header="Редактировать"
+            <MenuItem Header="{DynamicResource Common.Edit}"
                       Command="{Binding EditItemCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
             <Separator/>
 
-            <MenuItem Header="Найти переехавший файл"
+            <MenuItem Header="{DynamicResource Context.FindMoved}"
                       Command="{Binding FindMovedSelectedItemCommand}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
-            <MenuItem Header="Взять выбранный путь из Everything"
+            <MenuItem Header="{DynamicResource Context.UseEverythingPath}"
                       Command="{Binding UpdateSelectedItemPathFromEverythingCommand}"
                       IsEnabled="{Binding CanUseEverythingPath}"/>
 
             <Separator/>
 
-            <MenuItem Header="Убрать из текущего списка"
+            <MenuItem Header="{DynamicResource Context.RemoveCurrentList}"
                       Command="{Binding RemoveFromCurrentListCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
 
-            <MenuItem Header="Удалить полностью"
+            <MenuItem Header="{DynamicResource Context.DeleteEverywhere}"
                       Command="{Binding DeleteItemCommand}"
                       CommandParameter="{Binding SelectedItem}"
                       IsEnabled="{Binding HasSelectedItem}"/>
@@ -540,7 +540,7 @@
                        FontWeight="Bold"
                        DockPanel.Dock="Left"/>
 
-            <TextBlock Text="local path brain / где, блять, файл"
+            <TextBlock Text="{DynamicResource App.Tagline}"
                        Foreground="{StaticResource TextSecondary}"
                        FontSize="13"
                        VerticalAlignment="Bottom"
@@ -560,7 +560,7 @@
                        FontWeight="Bold"
                        DockPanel.Dock="Left"/>
 
-            <TextBlock Text="  / нажми, чтобы открыть форму добавления или редактирования"
+            <TextBlock Text="{DynamicResource Form.Hint}"
                        Foreground="{StaticResource TextSecondary}"
                        FontSize="12"
                        VerticalAlignment="Center"
@@ -592,18 +592,20 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Название:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource Form.Name}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="0" Grid.Column="1"
                      Text="{Binding NewTitle, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
 
-            <TextBlock Grid.Row="0" Grid.Column="2" Text="Тип:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource Form.Type}" VerticalAlignment="Center"/>
             <ComboBox Grid.Row="0" Grid.Column="3"
                       ItemsSource="{Binding ItemTypes}"
-                      SelectedItem="{Binding SelectedItemType}"
+                      DisplayMemberPath="DisplayName"
+                      SelectedValuePath="Value"
+                      SelectedValue="{Binding SelectedItemType}"
                       Margin="6"/>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Путь:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource Form.Path}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="1"
                      Text="{Binding NewPath, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
@@ -611,45 +613,45 @@
             <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
                         Orientation="Horizontal"
                         Margin="6">
-                <Button Content="Файл"
+                <Button Content="{DynamicResource Form.File}"
                         Width="80"
                         Margin="0,0,6,0"
                         Command="{Binding ChooseFileCommand}"/>
-                <Button Content="Папка"
+                <Button Content="{DynamicResource Form.Folder}"
                         Width="80"
                         Command="{Binding ChooseFolderCommand}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Аргументы:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource Form.Arguments}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="2" Grid.Column="1"
                      Text="{Binding NewArguments, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="2" Text="Раб. папка:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="2" Grid.Column="2" Text="{DynamicResource Form.WorkingDirectory}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="2" Grid.Column="3"
                      Text="{Binding NewWorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Своя иконка:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource Form.CustomIcon}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="3" Grid.Column="1"
                      Text="{Binding NewIconPath, UpdateSourceTrigger=PropertyChanged}"
-                     ToolTip="Можно оставить пустым — тогда значок возьмётся из файла приложения"
+                     ToolTip="{DynamicResource Form.CustomIconHint}"
                      Margin="6"/>
 
             <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
                         Orientation="Horizontal"
                         Margin="6">
-                <Button Content="Выбрать"
+                <Button Content="{DynamicResource Common.Choose}"
                         Width="90"
                         Margin="0,0,6,0"
                         Command="{Binding ChooseIconCommand}"/>
-                <Button Content="Авто"
+                <Button Content="{DynamicResource Common.Auto}"
                         Width="70"
-                        ToolTip="Убрать свою иконку и использовать автоматическую"
+                        ToolTip="{DynamicResource Form.AutoIconHint}"
                         Command="{Binding ClearIconCommand}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Теги:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="{DynamicResource Form.Tags}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="4" Grid.Column="1"
                      Text="{Binding NewTags, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
@@ -658,14 +660,14 @@
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
                         Margin="6">
-                <CheckBox Content="Избранное"
+                <CheckBox Content="{DynamicResource Form.Favorite}"
                           IsChecked="{Binding NewIsFavorite}"
                           Margin="0,0,16,0"/>
-                <CheckBox Content="Запускать с менеджером"
+                <CheckBox Content="{DynamicResource Form.RunWithManager}"
                           IsChecked="{Binding NewRunOnAppStart}"/>
             </StackPanel>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Заметка:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="{DynamicResource Form.Note}" VerticalAlignment="Center"/>
             <TextBox Grid.Row="5" Grid.Column="1"
                      Text="{Binding NewNote, UpdateSourceTrigger=PropertyChanged}"
                      Margin="6"/>
@@ -682,7 +684,7 @@
                         Margin="0,0,6,0"
                         Command="{Binding AddItemCommand}"/>
 
-                <Button Content="Отмена"
+                <Button Content="{DynamicResource Common.Cancel}"
                         Width="90"
                         Height="32"
                         Command="{Binding CancelEditCommand}"/>
@@ -716,13 +718,13 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
-                               Text="Списки"
+                               Text="{DynamicResource Lists.Title}"
                                FontSize="18"
                                FontWeight="Bold"
                                Margin="0,0,0,10"/>
 
                     <TextBlock Grid.Row="1"
-                               Text="Новый список:"
+                               Text="{DynamicResource Lists.New}"
                                Foreground="{StaticResource TextSecondary}"
                                Margin="0,0,0,4"/>
 
@@ -735,10 +737,10 @@
                         <TextBox Grid.Column="0"
                                  Height="30"
                                  Text="{Binding NewCollectionName, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Название нового списка"/>
+                                 ToolTip="{DynamicResource Lists.NewHint}"/>
 
                         <Button Grid.Column="1"
-                                Content="Add"
+                                Content="{DynamicResource Common.Add}"
                                 Margin="6,0,0,0"
                                 Command="{Binding AddCollectionCommand}"/>
                     </Grid>
@@ -759,24 +761,24 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0"
-                                       Text="Выбранный список:"
+                                       Text="{DynamicResource Lists.Selected}"
                                        FontWeight="Bold"
                                        Margin="0,0,0,6"/>
 
                             <TextBox Grid.Row="1"
                                      Height="30"
                                      Text="{Binding SelectedCollectionName, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Название выбранного списка"/>
+                                     ToolTip="{DynamicResource Lists.SelectedHint}"/>
 
                             <StackPanel Grid.Row="2"
                                         Orientation="Horizontal"
                                         Margin="0,8,0,0">
-                                <Button Content="Rename"
+                                <Button Content="{DynamicResource Common.Rename}"
                                         Width="90"
                                         Margin="0,0,6,0"
                                         Command="{Binding RenameSelectedCollectionCommand}"/>
 
-                                <Button Content="Delete"
+                                <Button Content="{DynamicResource Common.Delete}"
                                         Style="{StaticResource DangerButtonStyle}"
                                         Width="80"
                                         Command="{Binding DeleteSelectedCollectionCommand}"/>
@@ -786,17 +788,17 @@
 
                     <DockPanel Grid.Row="4">
                         <TextBlock DockPanel.Dock="Bottom"
-                                   Text="Drag &amp; drop: перетащи элемент из таблицы на список, чтобы добавить. Перетащи на «Все элементы», чтобы убрать из текущего списка."
+                                   Text="{DynamicResource Lists.DragHelp}"
                                    Foreground="{StaticResource TextSecondary}"
                                    FontSize="11"
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"/>
 
                         <Button DockPanel.Dock="Top"
-                                Content="Все элементы"
+                                Content="{DynamicResource Lists.AllItems}"
                                 Height="32"
                                 Margin="0,0,0,8"
-                                ToolTip="Показать все элементы. Если перетащить сюда элемент из выбранного списка — он будет убран из этого списка."
+                                ToolTip="{DynamicResource Lists.AllItemsHint}"
                                 AllowDrop="True"
                                 DragOver="AllItemsButton_DragOver"
                                 Drop="AllItemsButton_Drop"
@@ -806,7 +808,7 @@
                                  ItemsSource="{Binding Collections}"
                                  SelectedItem="{Binding SelectedCollection}"
                                  DisplayMemberPath="DisplayName"
-                                 ToolTip="Перетащи сюда элемент из таблицы, чтобы добавить его в список."
+                                 ToolTip="{DynamicResource Lists.DropHint}"
                                  AllowDrop="True"
                                  DragOver="CollectionListBox_DragOver"
                                  Drop="CollectionListBox_Drop"/>
@@ -844,7 +846,7 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0"
-                       Text="Поиск:"
+                       Text="{DynamicResource Items.Search}"
                        Foreground="{StaticResource TextSecondary}"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
@@ -854,10 +856,10 @@
                      Height="34"
                      FontSize="15"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     ToolTip="Поиск по названию, пути, типу, статусу, тегам и заметкам"/>
+                     ToolTip="{DynamicResource Items.SearchHint}"/>
 
             <Button Grid.Column="2"
-                    Content="Проверить пути"
+                    Content="{DynamicResource Items.CheckPaths}"
                     Height="34"
                     Margin="8,0,0,0"
                     Command="{Binding CheckPathsCommand}"/>
@@ -874,7 +876,7 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0"
-                       Text="Фильтр:"
+                       Text="{DynamicResource Items.Filter}"
                        Foreground="{StaticResource TextSecondary}"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
@@ -882,11 +884,13 @@
 
             <ComboBox Grid.Column="1"
                       Height="34"
-                      ItemsSource="{Binding FilterModes}"
-                      SelectedItem="{Binding SelectedFilterMode}"/>
+                       ItemsSource="{Binding FilterModes}"
+                       DisplayMemberPath="DisplayName"
+                       SelectedValuePath="Value"
+                       SelectedValue="{Binding SelectedFilterMode}"/>
 
             <CheckBox Grid.Column="2"
-                      Content="Только битые"
+                      Content="{DynamicResource Items.OnlyMissing}"
                       VerticalAlignment="Center"
                       HorizontalAlignment="Center"
                       IsChecked="{Binding ShowOnlyMissing}"/>
@@ -899,7 +903,7 @@
                        Margin="10,0,12,0"/>
 
             <ToggleButton Grid.Column="4"
-                          Content="☰ Список"
+                          Content="{DynamicResource Items.ListView}"
                           Height="34"
                           MinWidth="88"
                           Style="{StaticResource ViewModeToggleStyle}"
@@ -907,7 +911,7 @@
                           Command="{Binding ShowListViewCommand}"/>
 
             <ToggleButton Grid.Column="5"
-                          Content="▦ Сетка"
+                          Content="{DynamicResource Items.GridView}"
                           Height="34"
                           MinWidth="82"
                           Margin="6,0,0,0"
@@ -921,10 +925,10 @@
                 <TextBlock Grid.Row="1"
                            Margin="2,0,0,8"
                            Foreground="{StaticResource TextSecondary}"
-                           Text="Двойной клик открывает элемент, правая кнопка показывает меню."/>
+                           Text="{DynamicResource Items.InteractionHint}"/>
                 
                 <Expander Grid.Row="2"
-                          Header="Поиск Everything"
+                          Header="{DynamicResource Everything.Header}"
           Foreground="{StaticResource TextPrimary}"
           Background="{StaticResource PanelBackground}"
           Margin="0,0,0,10">
@@ -956,22 +960,22 @@
                 <TextBox Grid.Column="0"
                          Height="32"
                          Text="{Binding EverythingQuery, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Everything search query"/>
+                         ToolTip="{DynamicResource Everything.QueryHint}"/>
 
                 <TextBox Grid.Column="1"
                          Height="32"
                          Margin="6,0,0,0"
                          Text="{Binding EverythingMaxResults, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Max results"/>
+                         ToolTip="{DynamicResource Everything.MaxResultsHint}"/>
 
                 <Button Grid.Column="2"
-                        Content="Открыть"
+                        Content="{DynamicResource Everything.Search}"
                         Height="32"
                         Margin="6,0,0,0"
                         Command="{Binding SearchEverythingCommand}"/>
 
                 <Button Grid.Column="3"
-                        Content="Найти"
+                        Content="{DynamicResource Common.Open}"
                         Height="32"
                         Margin="6,0,0,0"
                         Command="{Binding OpenEverythingResultCommand}"
@@ -979,7 +983,7 @@
                         CommandParameter="{Binding SelectedEverythingResult}"/>
 
                 <Button Grid.Column="4"
-                        Content="Проводник"
+                        Content="{DynamicResource Context.ShowInExplorer}"
                         Height="32"
                         Margin="6,0,0,0"
                         Command="{Binding OpenEverythingResultInExplorerCommand}"
@@ -987,7 +991,7 @@
                         CommandParameter="{Binding SelectedEverythingResult}"/>
 
                 <Button Grid.Column="5"
-                        Content="Копировать"
+                        Content="{DynamicResource Common.Copy}"
                         Height="32"
                         Margin="6,0,0,0"
                         Command="{Binding CopyEverythingResultPathCommand}"
@@ -995,7 +999,7 @@
                         CommandParameter="{Binding SelectedEverythingResult}"/>
 
                 <Button Grid.Column="6"
-                        Content="Добавить"
+                        Content="{DynamicResource Everything.Add}"
                         Height="32"
                         Margin="6,0,0,0"
                         Style="{StaticResource PrimaryButtonStyle}"
@@ -1017,15 +1021,15 @@
                       FontSize="12">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Тип"
+                    <DataGridTextColumn Header="{DynamicResource Common.Type}"
                                         Binding="{Binding TypeDisplay}"
                                         Width="110"/>
 
-                    <DataGridTextColumn Header="Имя"
+                    <DataGridTextColumn Header="{DynamicResource Grid.Name}"
                                         Binding="{Binding Name}"
                                         Width="220"/>
 
-                    <DataGridTextColumn Header="Путь"
+                    <DataGridTextColumn Header="{DynamicResource Common.Path}"
                                         Binding="{Binding Path}"
                                         Width="*"/>
                 </DataGrid.Columns>
@@ -1059,23 +1063,23 @@
                                                     Binding="{Binding IsFavorite}"
                                                     Width="40"/>
 
-                            <DataGridTextColumn Header="Статус"
+                            <DataGridTextColumn Header="{DynamicResource Grid.Status}"
                                                 Binding="{Binding StatusDisplay}"
                                                 Width="150"/>
 
-                            <DataGridTextColumn Header="Тип"
+                            <DataGridTextColumn Header="{DynamicResource Common.Type}"
                                                 Binding="{Binding TypeDisplay}"
                                                 Width="120"/>
 
-                            <DataGridTextColumn Header="Название"
+                            <DataGridTextColumn Header="{DynamicResource Common.Name}"
                                                 Binding="{Binding Title}"
                                                 Width="190"/>
 
-                            <DataGridTextColumn Header="Путь"
+                            <DataGridTextColumn Header="{DynamicResource Common.Path}"
                                                 Binding="{Binding Path}"
                                                 Width="*"/>
 
-                            <DataGridTextColumn Header="Теги"
+                            <DataGridTextColumn Header="{DynamicResource Grid.Tags}"
                                                 Binding="{Binding Tags}"
                                                 Width="150"/>
                         </DataGrid.Columns>
@@ -1164,12 +1168,12 @@
                     </ScrollViewer.Resources>
 
                     <StackPanel>
-<TextBlock Text="Выбранный элемент"
+<TextBlock Text="{DynamicResource Sidebar.SelectedItem}"
            FontSize="15"
            FontWeight="Bold"
            Margin="0,0,0,8"/>
 
-<Expander Header="Настройки"
+<Expander Header="{DynamicResource Settings.Title}"
           IsExpanded="False"
           Foreground="{StaticResource TextPrimary}"
           Background="{StaticResource PanelBackground}"
@@ -1183,6 +1187,15 @@
             Margin="0,8,0,0">
 
         <StackPanel>
+            <TextBlock Text="{DynamicResource Settings.Language}"
+                       Foreground="{StaticResource TextSecondary}"
+                       Margin="0,0,0,4"/>
+
+            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      Height="34"
+                      Margin="0,0,0,12"/>
+
             <TextBlock Text="Everything / ES"
                        FontSize="15"
                        FontWeight="Bold"
@@ -1200,10 +1213,10 @@
 
                 <TextBox Grid.Column="0"
                          Text="{Binding SettingsEsPath, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Путь к es.exe"/>
+                         ToolTip="{DynamicResource Settings.EsPathHint}"/>
 
                 <Button Grid.Column="1"
-                        Content="Выбрать"
+                        Content="{DynamicResource Common.Choose}"
                         Margin="6,0,0,0"
                         Command="{Binding ChooseEsPathCommand}"/>
             </Grid>
@@ -1220,36 +1233,36 @@
 
                 <TextBox Grid.Column="0"
                          Text="{Binding SettingsEverythingPath, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Путь к Everything.exe"/>
+                         ToolTip="{DynamicResource Settings.EverythingPathHint}"/>
 
                 <Button Grid.Column="1"
-                        Content="Выбрать"
+                        Content="{DynamicResource Common.Choose}"
                         Margin="6,0,0,0"
                         Command="{Binding ChooseEverythingPathCommand}"/>
             </Grid>
 
-            <CheckBox Content="Автоматически запускать Everything"
+            <CheckBox Content="{DynamicResource Settings.AutoStartEverything}"
                       IsChecked="{Binding SettingsAutoStartEverything}"
                       Margin="0,0,0,12"/>
 
             <UniformGrid Columns="2" Margin="0,0,0,8">
-                <Button Content="Сохранить"
+                <Button Content="{DynamicResource Common.Save}"
                         Height="34"
                         Margin="0,0,6,6"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Command="{Binding SaveSettingsCommand}"/>
 
-                <Button Content="Проверить"
+                <Button Content="{DynamicResource Common.Test}"
                         Height="34"
                         Margin="0,0,0,6"
                         Command="{Binding TestEverythingSettingsCommand}"/>
 
-                <Button Content="Папка настроек"
+                <Button Content="{DynamicResource Settings.SettingsFolder}"
                         Height="34"
                         Margin="0,0,6,6"
                         Command="{Binding OpenSettingsFolderCommand}"/>
 
-                <Button Content="Папка tools"
+                <Button Content="{DynamicResource Settings.ToolsFolder}"
                         Height="34"
                         Margin="0,0,0,6"
                         Command="{Binding OpenToolsFolderCommand}"/>
@@ -1271,7 +1284,7 @@
                                 Margin="0,0,0,12">
 
                             <StackPanel>
-                                <TextBlock Text="{Binding SelectedItem.Title, TargetNullValue='Ничего не выбрано'}"
+                                <TextBlock Text="{Binding SelectedItem.Title, TargetNullValue='—'}"
                                            FontSize="16"
                                            FontWeight="Bold"
                                            TextWrapping="Wrap"
@@ -1286,68 +1299,68 @@
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Text="Действия"
+                        <TextBlock Text="{DynamicResource Sidebar.Actions}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Margin="0,0,0,8"/>
 
                         <UniformGrid Columns="2" Margin="0,0,0,12">
-                            <Button Content="Открыть"
+                            <Button Content="{DynamicResource Common.Open}"
                                     Height="34"
                                     Margin="0,0,6,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding OpenItemCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
 
-                            <Button Content="Проводник"
+                            <Button Content="{DynamicResource Context.ShowInExplorer}"
                                     Height="34"
                                     Margin="0,0,0,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding OpenInExplorerCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
 
-                            <Button Content="Запустить"
+                            <Button Content="{DynamicResource Common.Run}"
                                     Height="34"
                                     Margin="0,0,6,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding RunItemCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
 
-                            <Button Content="Копировать"
+                            <Button Content="{DynamicResource Common.Copy}"
                                     Height="34"
                                     Margin="0,0,0,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding CopyPathCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
 
-                            <Button Content="Редактировать"
+                            <Button Content="{DynamicResource Common.Edit}"
                                     Height="34"
                                     Margin="0,0,6,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding EditItemCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
 
-                            <Button Content="Убрать из списка"
+                            <Button Content="{DynamicResource Sidebar.RemoveList}"
                                     Height="34"
                                     Margin="0,0,0,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding RemoveFromCurrentListCommand}"
                                     CommandParameter="{Binding SelectedItem}"/>
 
-                            <Button Content="Найти переезд"
+                            <Button Content="{DynamicResource Sidebar.FindMoved}"
                                     Height="34"
                                     Margin="0,0,6,6"
                                     IsEnabled="{Binding HasSelectedItem}"
                                     Command="{Binding FindMovedSelectedItemCommand}"/>
 
-                            <Button Content="Взять путь ES"
+                            <Button Content="{DynamicResource Sidebar.UseEsPath}"
                                     Height="34"
                                     Margin="0,0,0,6"
                                     IsEnabled="{Binding CanUseEverythingPath}"
                                     Command="{Binding UpdateSelectedItemPathFromEverythingCommand}"/>
                         </UniformGrid>
 
-                        <Button Content="Удалить полностью"
+                        <Button Content="{DynamicResource Context.DeleteEverywhere}"
                                 Style="{StaticResource DangerButtonStyle}"
                                 Height="36"
                                 Margin="0,0,0,16"
@@ -1355,7 +1368,7 @@
                                 Command="{Binding DeleteItemCommand}"
                                 CommandParameter="{Binding SelectedItem}"/>
 
-                        <TextBlock Text="Путь"
+                        <TextBlock Text="{DynamicResource Common.Path}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Margin="0,0,0,6"/>
@@ -1367,7 +1380,7 @@
                                  VerticalContentAlignment="Top"
                                  Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Теги"
+                        <TextBlock Text="{DynamicResource Grid.Tags}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Margin="0,0,0,6"/>
@@ -1376,7 +1389,7 @@
                                  IsReadOnly="True"
                                  Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Рабочая папка"
+                        <TextBlock Text="{DynamicResource Sidebar.WorkingDirectory}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Margin="0,0,0,6"/>
@@ -1388,7 +1401,7 @@
                                  VerticalContentAlignment="Top"
                                  Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Заметка"
+                        <TextBlock Text="{DynamicResource Sidebar.Note}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Margin="0,0,0,6"/>
@@ -1399,24 +1412,24 @@
                                  MinHeight="90"
                                  VerticalContentAlignment="Top"/>
                         
-                        <TextBlock Text="Обслуживание"
+                        <TextBlock Text="{DynamicResource Settings.Maintenance}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Margin="0,16,0,6"/>
 
                         <UniformGrid Columns="2" Margin="0,0,0,8">
-                            <Button Content="Экспорт JSON"
+                            <Button Content="{DynamicResource Settings.ExportJson}"
                                     Height="34"
                                     Margin="0,0,6,6"
                                     Command="{Binding ExportBackupCommand}"/>
 
-                            <Button Content="Импорт JSON"
+                            <Button Content="{DynamicResource Settings.ImportJson}"
                                     Height="34"
                                     Margin="0,0,0,6"
                                     Command="{Binding ImportBackupCommand}"/>
                         </UniformGrid>
 
-                        <Button Content="Открыть папку базы"
+                        <Button Content="{DynamicResource Settings.DatabaseFolder}"
                                 Height="34"
                                 Command="{Binding OpenDatabaseFolderCommand}"/>
                         
